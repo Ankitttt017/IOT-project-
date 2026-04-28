@@ -1,0 +1,64 @@
+Port 5173 is in use, trying another one...
+
+  [32m[1mVITE[22m v5.4.21[39m  [2mready in [0m[1m625[22m[2m[0m ms[22m
+
+  [32m➜[39m  [1mLocal[22m:   [36mhttp://127.0.0.1:[1m5174[22m/[39m
+[2m12:22:20 PM[22m [36m[1m[vite][22m[39m [32m✨ new dependencies optimized: [33maxios[32m[39m
+[2m12:22:20 PM[22m [36m[1m[vite][22m[39m [32m✨ optimized dependencies changed. reloading[39m
+[2m12:23:45 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/partprofile/OperationsTab.jsx, /src/index.css[22m
+[2m12:25:08 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/partprofile/ConfigurationTab.jsx, /src/index.css[22m
+[2m12:52:54 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/PartMasterPage.jsx, /src/index.css[22m
+[2m12:53:23 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/common/Navbar.jsx, /src/index.css[22m
+[2m12:53:31 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/PartMasterPage.jsx, /src/index.css[22m
+[2m1:02:09 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/PartMasterPage.jsx, /src/index.css[22m
+[2m1:02:13 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/PartMasterPage.jsx, /src/index.css[22m
+[2m1:02:18 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/common/Navbar.jsx, /src/index.css[22m
+[2m1:02:52 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/common/Navbar.jsx[22m
+[2m1:03:06 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/common/Navbar.jsx[22m
+[2m1:03:18 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css[22m
+[2m1:13:39 PM[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2mtailwind.config.js[22m
+[2m1:14:09 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css[22m
+[2m1:14:17 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/common/Sidebar.jsx, /src/index.css[22m
+[2m1:14:26 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/common/Navbar.jsx, /src/index.css[22m
+[2m1:14:41 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/PartMasterPage.jsx, /src/index.css[22m
+[2m1:14:55 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/common/Navbar.jsx, /src/index.css[22m
+[2m1:15:01 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/PartMasterPage.jsx, /src/index.css[22m
+[2m1:15:13 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/PartProfilePage.jsx, /src/index.css[22m
+[2m1:15:24 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/partprofile/ConfigurationTab.jsx, /src/index.css[22m
+[2m1:15:33 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/partprofile/OperationsTab.jsx, /src/index.css[22m
+[2m1:15:50 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/LoginPage.jsx, /src/index.css[22m
+[2m1:19:41 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/common/Navbar.jsx, /src/index.css[22m
+[2m1:19:49 PM[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2msrc/components/partmaster/PartCard.jsx[22m
+[2m1:19:55 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css[22m
+[2m3:06:18 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css[22m
+[2m3:09:22 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/PartMasterPage.jsx, /src/index.css[22m
+[2m3:09:35 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/PartProfilePage.jsx, /src/index.css[22m
+[2m3:13:20 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/PartMasterPage.jsx, /src/index.css[22m
+[2m3:13:35 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/PartProfilePage.jsx, /src/index.css[22m
+[2m3:15:41 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/PartMasterPage.jsx, /src/index.css[22m
+[2m3:15:52 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/PartProfilePage.jsx, /src/index.css[22m
+[2m3:18:39 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/PartProfilePage.jsx, /src/index.css[22m
+[2m3:21:16 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/partprofile/LockedTabs.jsx, /src/index.css[22m
+[2m3:21:26 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/partprofile/LockedTabs.jsx, /src/index.css[22m
+[2m3:29:17 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/App.jsx, /src/index.css[22m
+[2m3:30:22 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/common/Navbar.jsx, /src/index.css[22m
+[2m3:31:37 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/LoginPage.jsx, /src/index.css[22m
+[2m3:32:26 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/LoginPage.jsx, /src/index.css[22m
+[2m3:32:34 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/common/Sidebar.jsx, /src/index.css[22m
+[2m3:33:22 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/PartMasterPage.jsx, /src/index.css[22m
+[2m3:34:04 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/PartProfilePage.jsx, /src/index.css[22m
+[2m3:35:14 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/PartProfilePage.jsx, /src/index.css[22m
+[2m3:35:26 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/common/Sidebar.jsx, /src/index.css[22m
+[2m3:35:48 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/partprofile/ConfigurationTab.jsx, /src/index.css[22m
+[2m3:36:20 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/partprofile/OperationsTab.jsx, /src/index.css[22m
+[2m3:37:08 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/partprofile/OperationsTab.jsx, /src/index.css[22m
+[2m3:37:20 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/partprofile/LockedTabs.jsx, /src/index.css[22m
+[2m3:37:42 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/PartMasterPage.jsx, /src/index.css[22m
+[2m3:38:05 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/PartProfilePage.jsx, /src/index.css[22m
+[2m3:38:14 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/common/Navbar.jsx, /src/index.css[22m
+[2m3:39:01 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/PartProfilePage.jsx, /src/index.css[22m
+[2m3:40:17 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/PartProfilePage.jsx, /src/index.css[22m
+[2m3:40:23 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/LoginPage.jsx, /src/index.css[22m
+[2m3:41:18 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/LoginPage.jsx, /src/index.css[22m
+[2m3:41:51 PM[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2msrc/components/partmaster/PartCard.jsx[22m
+[2m3:42:35 PM[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/partprofile/OperationsTab.jsx, /src/index.css[22m
