@@ -4,14 +4,18 @@ const {
   getAllPlants, getPartsByPlant, getPartById,
   getPartOperations, getPartConfiguration, updatePartConfiguration,
   updatePartById, getPartSheets, uploadPartSheet, downloadPartSheet,
-  getMaterials, getStats,
+  updatePartOperation, deletePartOperation,
+  getOperationMaster, getMaterials, getStats,
 } = require('../controllers/partController');
 
 router.get('/plants',                        getAllPlants);
 router.get('/parts',                         getPartsByPlant);
+router.get('/operations',                    getOperationMaster);
 router.get('/parts/:id',                     getPartById);
 router.put('/parts/:id',                     updatePartById);
 router.get('/parts/:id/operations',          getPartOperations);
+router.put('/parts/:id/operations/:operationId', updatePartOperation);
+router.delete('/parts/:id/operations/:operationId', deletePartOperation);
 router.get('/parts/:id/sheets',              getPartSheets);
 router.post('/parts/:id/sheets/:type',       uploadPartSheet);
 router.get('/parts/:id/sheets/:type/:sheetId/download', downloadPartSheet);

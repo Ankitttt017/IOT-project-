@@ -66,7 +66,9 @@
 ::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
 
 .app-page {
-  background: var(--app-bg);
+  background:
+    radial-gradient(circle at 20% 0%, rgba(15, 118, 110, 0.08), transparent 28rem),
+    linear-gradient(180deg, #eef3f7 0%, var(--app-bg) 42%, #f8fafc 100%);
 }
 
 .app-panel,

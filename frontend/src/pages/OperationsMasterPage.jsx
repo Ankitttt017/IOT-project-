@@ -1,104 +1,108 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import Navbar from "../components/common/Navbar";
 import Sidebar from "../components/common/Sidebar";
-import { getPlants, getParts, getOperations } from "../services/api";
+import { getOperationMaster, getParts, getPlants } from "../services/api";
 
-// ── Stats card ──────────────────────────────────────────────
-const StatCard = ({ value, label, icon, color = "text-slate-800" }) => (
-  <div className="flex flex-col items-center justify-center gap-1 rounded-md border border-slate-100 bg-slate-50 px-6 py-4 text-center">
-    <div className="flex items-center gap-2">
-      <span className={`text-3xl font-bold ${color}`}>{value}</span>
-      <span className="text-slate-400">{icon}</span>
+const PLANT_NAMES = {
+  "1002": "Gurugram Plant",
+  "1008": "Bawal Plant",
+  "1010": "Pathredi Plant",
+  "1012": "Chennai Plant",
+};
+
+const normalizePlant = (plant) => {
+  const code = String(plant?.code || plant?.plant_code || "").trim();
+  return {
+    id: plant?.id || code,
+    code,
+    name: PLANT_NAMES[code] || plant?.name || `${code} Plant`,
+  };
+};
+
+const StatCard = ({ value, label, icon, color = "text-slate-900" }) => (
+  <div className="flex min-h-[92px] items-center justify-center rounded-lg border border-slate-100 bg-slate-50/80 px-5 py-4">
+    <div className="text-center">
+      <div className="flex items-center justify-center gap-2">
+        <span className={`text-3xl font-extrabold leading-none ${color}`}>{value}</span>
+        <span className="text-slate-400">{icon}</span>
+      </div>
+      <p className="mt-2 text-xs font-bold uppercase tracking-wide text-slate-500">{label}</p>
     </div>
-    <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{label}</p>
   </div>
 );
 
-// ── Type badge ───────────────────────────────────────────────
 const TypeBadge = ({ type }) => {
-  const map = {
-    CASTING:    "bg-orange-50 text-orange-700",
-    MACHINING:  "bg-blue-50 text-blue-700",
-    INSPECTION: "bg-teal-50 text-teal-700",
-    ASSEMBLY:   "bg-purple-50 text-purple-700",
-    PAINTING:   "bg-pink-50 text-pink-700",
-    FG:         "bg-green-50 text-green-700",
+  const key = String(type || "").toUpperCase();
+  const classes = {
+    CASTING: "bg-teal-50 text-teal-700",
+    MACHINING: "bg-blue-50 text-blue-700",
+    INSPECTION: "bg-emerald-50 text-emerald-700",
+    ASSEMBLY: "bg-purple-50 text-purple-700",
+    PAINTING: "bg-pink-50 text-pink-700",
+    RECORDED: "bg-slate-100 text-slate-600",
   };
-  const cls = map[type?.toUpperCase()] || "bg-slate-100 text-slate-600";
+
   return (
-    <span className={`inline-block rounded px-2 py-0.5 text-[11px] font-semibold ${cls}`}>
-      {type || "—"}
+    <span className={`inline-flex rounded-md px-2 py-1 text-[11px] font-extrabold ${classes[key] || "bg-slate-100 text-slate-600"}`}>
+      {type || "-"}
     </span>
   );
 };
 
-// ── Linked badge ─────────────────────────────────────────────
-const LinkedBadge = ({ linked }) => (
-  <span className={`inline-block rounded px-2 py-0.5 text-[11px] font-semibold ${
-    linked ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-500"
-  }`}>
-    {linked ? "Linked" : "Not Linked"}
-  </span>
-);
-
-// ── Dropdown ─────────────────────────────────────────────────
 const Dropdown = ({ label, value, options, onChange, placeholder, searchable = false }) => {
-  const [open, setOpen]     = useState(false);
-  const [query, setQuery]   = useState("");
-
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const selected = options.find((option) => option.value === value);
   const filtered = searchable
-    ? options.filter(o => o.label.toLowerCase().includes(query.toLowerCase()))
+    ? options.filter((option) => option.label.toLowerCase().includes(query.toLowerCase()))
     : options;
-
-  const selected = options.find(o => o.value === value);
 
   return (
     <div>
-      <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500">
-        {label}
-      </label>
+      <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500">{label}</label>
       <div className="relative w-56">
         <button
           type="button"
-          onClick={() => setOpen(p => !p)}
-          className="flex w-full items-center justify-between rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 transition focus:outline-none focus:ring-2 focus:ring-[#7667ff]/30"
+          onClick={() => setOpen((prev) => !prev)}
+          className="app-field flex w-full items-center justify-between rounded-lg border px-3 py-2.5 text-left text-sm transition-colors focus:outline-none focus:ring-4 focus:ring-teal-50"
         >
           <span className="truncate">{selected?.label || placeholder}</span>
-          <svg className={`h-4 w-4 shrink-0 text-slate-400 transition-transform ${open ? "rotate-180" : ""}`}
-            fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className={`h-4 w-4 shrink-0 text-slate-400 transition-transform ${open ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
           </svg>
         </button>
 
         {open && (
-          <div className="absolute left-0 top-full z-30 mt-1 w-full overflow-hidden rounded-lg border border-slate-200 bg-white shadow-xl">
+          <div className="absolute left-0 top-full z-30 mt-1 w-full overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl">
             {searchable && (
               <div className="border-b p-2">
                 <input
-                  className="w-full rounded border border-slate-200 px-2 py-1.5 text-sm focus:outline-none"
+                  className="w-full rounded-md border border-slate-200 px-2 py-1.5 text-sm focus:outline-none"
                   placeholder="Search..."
                   value={query}
-                  onChange={e => setQuery(e.target.value)}
+                  onChange={(event) => setQuery(event.target.value)}
                   autoFocus
                 />
               </div>
             )}
-            <div className="max-h-52 overflow-y-auto">
+            <div className="max-h-60 overflow-y-auto py-1">
               {filtered.length === 0 ? (
                 <p className="py-3 text-center text-xs text-slate-400">No results</p>
               ) : (
-                filtered.map(opt => (
+                filtered.map((option) => (
                   <button
-                    key={opt.value}
+                    key={option.value || "all"}
                     type="button"
-                    onClick={() => { onChange(opt.value); setOpen(false); setQuery(""); }}
+                    onClick={() => {
+                      onChange(option.value);
+                      setOpen(false);
+                      setQuery("");
+                    }}
                     className={`w-full px-4 py-2.5 text-left text-sm transition-colors ${
-                      opt.value === value
-                        ? "bg-[#7667ff]/10 font-semibold text-[#7667ff]"
-                        : "text-slate-700 hover:bg-slate-50"
+                      option.value === value ? "app-selected font-semibold" : "text-slate-700 hover:bg-slate-50"
                     }`}
                   >
-                    {opt.label}
+                    <span className="block truncate">{option.label}</span>
                   </button>
                 ))
               )}
@@ -111,97 +115,106 @@ const Dropdown = ({ label, value, options, onChange, placeholder, searchable = f
   );
 };
 
-// ── Main Page ─────────────────────────────────────────────────
-const OperationsMasterPage = ({ onLogout, currentUser }) => {
-  const [plants, setPlants]             = useState([]);
-  const [selectedPlant, setSelectedPlant] = useState("");
-  const [parts, setParts]               = useState([]);
-  const [selectedPart, setSelectedPart] = useState("");
-  const [operations, setOperations]     = useState([]);
-  const [loading, setLoading]           = useState(false);
-  const [search, setSearch]             = useState("");
-  const [page, setPage]                 = useState(1);
-  const rowsPerPage                     = 10;
+const formatDate = (value) => {
+  if (!value) return "-";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return date.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
+};
 
-  // Load plants
+const OperationsMasterPage = ({ onLogout, currentUser }) => {
+  const [plants, setPlants] = useState([]);
+  const [selectedPlant, setSelectedPlant] = useState("");
+  const [parts, setParts] = useState([]);
+  const [selectedPart, setSelectedPart] = useState("");
+  const [operations, setOperations] = useState([]);
+  const [stats, setStats] = useState({ total: 0, types: 0, linked: 0, unlinked: 0 });
+  const [total, setTotal] = useState(0);
+  const [search, setSearch] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [page, setPage] = useState(1);
+  const rowsPerPage = 10;
+
   useEffect(() => {
     getPlants()
-      .then(r => {
-        const list = r.data.data || [];
+      .then((response) => {
+        const list = (response.data.data || []).map(normalizePlant).filter((plant) => plant.code);
         setPlants(list);
-        if (list.length > 0) setSelectedPlant(list[0].code);
+        setSelectedPlant(list[0]?.code || "");
       })
-      .catch(() => {});
+      .catch(() => {
+        const fallback = ["1002", "1008", "1010", "1012"].map((code) => ({ id: code, code, name: PLANT_NAMES[code] }));
+        setPlants(fallback);
+        setSelectedPlant(fallback[0].code);
+      });
   }, []);
 
-  // Load parts when plant changes
   useEffect(() => {
     if (!selectedPlant) return;
     getParts({ plant: selectedPlant, limit: 9999 })
-      .then(r => {
-        setParts(r.data.data || []);
+      .then((response) => {
+        setParts(response.data.data || []);
         setSelectedPart("");
       })
       .catch(() => setParts([]));
   }, [selectedPlant]);
 
-  // Load operations
   const fetchOperations = useCallback(() => {
     if (!selectedPlant) return;
     setLoading(true);
-    getOperations({ plant: selectedPlant, part: selectedPart || undefined })
-      .then(r => setOperations(r.data.data || []))
-      .catch(() => setOperations([]))
+    getOperationMaster({
+      plant: selectedPlant,
+      part: selectedPart || undefined,
+      search: search || undefined,
+      page,
+      limit: rowsPerPage,
+    })
+      .then((response) => {
+        setOperations(response.data.data || []);
+        setStats(response.data.stats || { total: 0, types: 0, linked: 0, unlinked: 0 });
+        setTotal(response.data.total || 0);
+      })
+      .catch(() => {
+        setOperations([]);
+        setStats({ total: 0, types: 0, linked: 0, unlinked: 0 });
+        setTotal(0);
+      })
       .finally(() => setLoading(false));
-  }, [selectedPlant, selectedPart]);
+  }, [page, search, selectedPart, selectedPlant]);
 
   useEffect(() => {
-    fetchOperations();
-    setPage(1);
-  }, [fetchOperations]);
+    const timer = setTimeout(fetchOperations, search ? 250 : 0);
+    return () => clearTimeout(timer);
+  }, [fetchOperations, search]);
 
-  // Derived stats
-  const totalOps    = operations.length;
-  const opTypes     = new Set(operations.map(o => o.type)).size;
-  const linkedOps   = operations.filter(o => o.part_code).length;
-  const unlinkedOps = totalOps - linkedOps;
+  useEffect(() => setPage(1), [selectedPlant, selectedPart, search]);
 
-  // Filter + paginate
-  const filtered = operations.filter(op =>
-    !search ||
-    op.name?.toLowerCase().includes(search.toLowerCase()) ||
-    op.label?.toLowerCase().includes(search.toLowerCase()) ||
-    op.type?.toLowerCase().includes(search.toLowerCase())
-  );
-  const totalPages  = Math.max(1, Math.ceil(filtered.length / rowsPerPage));
-  const paginated   = filtered.slice((page - 1) * rowsPerPage, page * rowsPerPage);
-
-  // Options for dropdowns
-  const plantOptions = plants.map(p => ({ value: p.code, label: p.name }));
-  const partOptions  = [
+  const plantOptions = plants.map((plant) => ({ value: plant.code, label: plant.name }));
+  const partOptions = useMemo(() => [
     { value: "", label: "All Parts" },
-    ...parts.map(p => ({ value: p.material_code, label: p.description || p.material_code })),
-  ];
+    ...parts.map((part) => ({ value: part.material_code, label: part.description || part.material_code })),
+  ], [parts]);
 
-  const selectedPlantName = plants.find(p => p.code === selectedPlant)?.name || selectedPlant;
-  const selectedPartName  = selectedPart
-    ? parts.find(p => p.material_code === selectedPart)?.description || selectedPart
+  const selectedPlantName = plants.find((plant) => plant.code === selectedPlant)?.name || selectedPlant;
+  const selectedPartName = selectedPart
+    ? parts.find((part) => part.material_code === selectedPart)?.description || selectedPart
     : "All Parts";
+  const totalPages = Math.max(1, Math.ceil(total / rowsPerPage));
+  const startRow = total === 0 ? 0 : (page - 1) * rowsPerPage + 1;
+  const endRow = Math.min(page * rowsPerPage, total);
 
   return (
     <div className="min-h-screen bg-[#f7f7fa] app-page">
       <Navbar onLogout={onLogout} currentUser={currentUser} />
       <Sidebar />
 
-      <main className="pt-[88px] lg:pl-64">
+      <main className="pt-[94px] lg:pl-72">
         <div className="w-full p-4 sm:p-6">
-
-          {/* Breadcrumb */}
-          <div className="mb-4 flex items-center gap-2 flex-wrap">
-            <h1 className="text-xl font-bold text-gray-900">Organisation Master</h1>
-            <span className="text-gray-300">|</span>
-            <nav className="flex items-center gap-1 text-sm text-gray-500">
-              <span className="font-medium text-[#7667ff]">Part & Operations</span>
+          <div className="mb-5 flex flex-wrap items-center gap-2">
+            <h1 className="text-xl font-extrabold text-slate-950">Organisation Master</h1>
+            <span className="text-slate-300">|</span>
+            <nav className="flex items-center gap-1 text-sm text-slate-500">
+              <span className="app-brand-text font-medium">Part & Operations</span>
               <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
@@ -209,17 +222,14 @@ const OperationsMasterPage = ({ onLogout, currentUser }) => {
             </nav>
           </div>
 
-          {/* Main card */}
-          <div className="w-full rounded-md border border-gray-100 bg-white p-5 shadow-sm mb-5">
-            <h2 className="text-base font-bold text-slate-900">Operation Master</h2>
-            <p className="mt-1 text-sm text-slate-500 leading-relaxed max-w-4xl">
+          <section className="app-panel mb-6 w-full rounded-2xl border border-slate-200 bg-white p-5">
+            <h2 className="text-lg font-extrabold text-slate-950">Operation Master</h2>
+            <p className="mt-2 max-w-5xl text-sm leading-relaxed text-slate-500">
               The operation master is a list of all the existing operations registered in the plant.
               The operations can be linked to a particular part. Each operation must have a unique
-              reference, a virtual store is automatically created for every operation registered
-              which is credited as per policies and rules defined.
+              reference, and the routing data below is mapped directly from the database.
             </p>
 
-            {/* Filters */}
             <div className="mt-5 flex flex-wrap items-end gap-4">
               <Dropdown
                 label="Select Plant"
@@ -238,144 +248,103 @@ const OperationsMasterPage = ({ onLogout, currentUser }) => {
               />
             </div>
 
-            {/* Stats */}
-            <div className="mt-5 grid grid-cols-2 sm:grid-cols-4 gap-3">
-              <StatCard
-                value={totalOps}
-                label="Operations Registered"
-                color="text-slate-800"
-                icon={
-                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                  </svg>
-                }
-              />
-              <StatCard
-                value={opTypes}
-                label="Operations Types"
-                color="text-slate-800"
-                icon={
-                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a4 4 0 014-4z" />
-                  </svg>
-                }
-              />
-              <StatCard
-                value={linkedOps}
-                label="Operations Linked"
-                color="text-emerald-600"
-                icon={
-                  <svg className="h-5 w-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-                  </svg>
-                }
-              />
-              <StatCard
-                value={unlinkedOps}
-                label="Operations Unlinked"
-                color="text-red-500"
-                icon={
-                  <svg className="h-5 w-5 text-red-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
-                  </svg>
-                }
-              />
+            <h3 className="mt-5 text-base font-bold text-slate-700">Overall Statistics</h3>
+            <p className="mt-1 text-sm leading-relaxed text-slate-500">
+              This section gives an overall summary of registered operations for the selected plant and part.
+            </p>
+
+            <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              <StatCard value={stats.total} label="Operations Registered" icon={<BriefcaseIcon />} />
+              <StatCard value={stats.types} label="Operations Types" icon={<TagIcon />} />
+              <StatCard value={stats.linked} label="Operations Linked" color="text-emerald-600" icon={<LinkIcon />} />
+              <StatCard value={stats.unlinked} label="Operations Unlinked" color="text-red-500" icon={<UnlinkIcon />} />
             </div>
 
-            {/* Breadcrumb trail */}
-            <p className="mt-4 text-xs text-[#7667ff] font-medium">
+            <p className="mt-4 text-xs font-semibold text-[#7667ff]">
               {selectedPlantName} &gt; {selectedPartName}
             </p>
-          </div>
+          </section>
 
-          {/* Table card */}
-          <div className="w-full rounded-md border border-gray-100 bg-white shadow-sm">
-            {/* Table toolbar */}
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-5 py-3">
+          <section className="w-full overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-5 py-4">
               <div className="flex items-center gap-2 text-sm text-slate-500">
                 <span>Show</span>
-                <span className="font-semibold text-slate-700">{rowsPerPage}</span>
+                <span className="rounded-md border border-slate-200 px-3 py-2 font-semibold text-slate-700">10</span>
                 <span>entries</span>
               </div>
-              <div className="relative">
-                <svg className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
-                  fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <label className="relative">
+                <svg className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
                 <input
-                  className="h-9 w-56 rounded-md border border-slate-200 bg-slate-50 pl-9 pr-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#7667ff]/20"
+                  className="app-field h-10 w-64 rounded-lg border bg-slate-50 pl-9 pr-3 text-sm focus:outline-none focus:ring-4 focus:ring-teal-50"
                   placeholder="Search operations..."
                   value={search}
-                  onChange={e => { setSearch(e.target.value); setPage(1); }}
+                  onChange={(event) => setSearch(event.target.value)}
                 />
-              </div>
+              </label>
             </div>
 
-            {/* Table */}
             <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+              <table className="min-w-[1280px] w-full text-sm">
                 <thead>
-                  <tr className="border-b border-slate-100 bg-slate-50 text-left text-xs font-bold uppercase tracking-wide text-slate-500">
-                    <th className="px-5 py-3 w-16">SR. NO.</th>
-                    <th className="px-4 py-3">Operation ID</th>
+                  <tr className="border-b border-slate-100 bg-slate-50 text-left text-xs font-extrabold uppercase tracking-wide text-slate-500">
+                    <th className="px-5 py-3">SR. NO.</th>
+                    <th className="px-4 py-3">Operation No.</th>
                     <th className="px-4 py-3">Operation Name</th>
+                    <th className="px-4 py-3">OPS</th>
+                    <th className="px-4 py-3">Tools</th>
+                    <th className="px-4 py-3">Inspection</th>
                     <th className="px-4 py-3">Type</th>
                     <th className="px-4 py-3">Linked Part</th>
-                    <th className="px-4 py-3">Status</th>
+                    <th className="px-4 py-3">Modified</th>
                     <th className="px-4 py-3">Rework</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="divide-y divide-slate-100">
                   {loading ? (
                     <tr>
-                      <td colSpan={7} className="py-16 text-center">
-                        <div className="flex flex-col items-center gap-3">
-                          <svg className="h-7 w-7 animate-spin text-[#7667ff]" fill="none" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                          </svg>
-                          <p className="text-xs text-slate-400">Loading operations...</p>
-                        </div>
+                      <td colSpan={10} className="py-20 text-center">
+                        <svg className="mx-auto h-8 w-8 animate-spin text-[#7667ff]" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                        </svg>
+                        <p className="mt-3 text-xs text-slate-400">Loading operations...</p>
                       </td>
                     </tr>
-                  ) : paginated.length === 0 ? (
+                  ) : operations.length === 0 ? (
                     <tr>
-                      <td colSpan={7} className="py-16 text-center text-slate-400">
-                        <svg className="mx-auto mb-3 h-10 w-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12h14V7a2 2 0 00-2-2h-2m-6 0a3 3 0 016 0m-6 0h6" />
-                        </svg>
-                        <p className="text-sm font-medium">No operations found</p>
-                        <p className="text-xs mt-1">Try changing the plant or part filter</p>
+                      <td colSpan={10} className="py-20 text-center text-slate-400">
+                        <BriefcaseIcon className="mx-auto h-10 w-10" />
+                        <p className="mt-3 text-sm font-semibold">No operations found</p>
+                        <p className="mt-1 text-xs">Try changing the plant or part filter</p>
                       </td>
                     </tr>
                   ) : (
-                    paginated.map((op, idx) => (
-                      <tr
-                        key={op.id}
-                        className="border-b border-slate-50 transition-colors hover:bg-slate-50"
-                      >
-                        <td className="px-5 py-3 text-slate-400 text-xs">
-                          {(page - 1) * rowsPerPage + idx + 1}
-                        </td>
+                    operations.map((operation, index) => (
+                      <tr key={operation.id} className="transition-colors hover:bg-slate-50">
+                        <td className="px-5 py-3 text-slate-500">{startRow + index}</td>
                         <td className="px-4 py-3">
-                          <span className="font-mono text-xs font-semibold text-[#7667ff]">
-                            {op.label || op.id}
-                          </span>
+                          <span className="font-mono text-xs font-semibold text-[#7667ff]">{operation.operation_id || "-"}</span>
                         </td>
-                        <td className="px-4 py-3 font-medium text-slate-800 max-w-xs">
-                          {op.name}
+                        <td className="max-w-[360px] px-4 py-3 font-medium text-slate-700">
+                          <p className="truncate" title={operation.operation_name}>{operation.operation_name || "-"}</p>
                         </td>
-                        <td className="px-4 py-3">
-                          <TypeBadge type={op.type} />
+                        <td className="px-4 py-3 text-slate-500">Not Available</td>
+                        <td className="px-4 py-3 text-slate-500">{operation.machine_count > 0 ? `${operation.machine_count} Machine` : "Not Linked"}</td>
+                        <td className="px-4 py-3 text-slate-500">0</td>
+                        <td className="px-4 py-3"><TypeBadge type={operation.type} /></td>
+                        <td className="max-w-[220px] px-4 py-3">
+                          <div className="flex items-center gap-2 text-[#7667ff]">
+                            <EyeIcon />
+                            <span className="truncate" title={operation.linked_part || operation.part_code}>
+                              {operation.linked_part || operation.part_code || "-"}
+                            </span>
+                          </div>
                         </td>
-                        <td className="px-4 py-3 text-xs text-slate-600 font-mono">
-                          {op.part_code || <span className="text-slate-300">—</span>}
-                        </td>
-                        <td className="px-4 py-3">
-                          <LinkedBadge linked={!!op.part_code} />
-                        </td>
-                        <td className="px-4 py-3 text-xs text-slate-500">
-                          {op.rework || <span className="text-slate-300">No rework</span>}
+                        <td className="px-4 py-3 text-slate-500">{formatDate(operation.modified_at)}</td>
+                        <td className="px-4 py-3 text-slate-500">
+                          {operation.rework && operation.rework !== "No rework assigned" ? operation.rework : <span className="italic text-slate-400">No rework assigned</span>}
                         </td>
                       </tr>
                     ))
@@ -384,57 +353,41 @@ const OperationsMasterPage = ({ onLogout, currentUser }) => {
               </table>
             </div>
 
-            {/* Pagination */}
-            {!loading && filtered.length > 0 && (
-              <div className="flex items-center justify-between border-t border-slate-100 px-5 py-3 text-xs text-slate-500">
-                <span>
-                  Showing {Math.min((page - 1) * rowsPerPage + 1, filtered.length)}–
-                  {Math.min(page * rowsPerPage, filtered.length)} of {filtered.length} entries
-                </span>
-                <div className="flex items-center gap-1">
-                  <button
-                    onClick={() => setPage(1)}
-                    disabled={page === 1}
-                    className="rounded px-2 py-1 hover:bg-slate-100 disabled:opacity-30"
-                  >«</button>
-                  <button
-                    onClick={() => setPage(p => Math.max(1, p - 1))}
-                    disabled={page === 1}
-                    className="rounded px-2 py-1 hover:bg-slate-100 disabled:opacity-30"
-                  >‹</button>
-                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                    const p = Math.max(1, Math.min(page - 2, totalPages - 4)) + i;
-                    return (
-                      <button
-                        key={p}
-                        onClick={() => setPage(p)}
-                        className={`rounded px-2.5 py-1 font-medium ${
-                          p === page
-                            ? "bg-[#7667ff] text-white"
-                            : "hover:bg-slate-100 text-slate-600"
-                        }`}
-                      >{p}</button>
-                    );
-                  })}
-                  <button
-                    onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                    disabled={page === totalPages}
-                    className="rounded px-2 py-1 hover:bg-slate-100 disabled:opacity-30"
-                  >›</button>
-                  <button
-                    onClick={() => setPage(totalPages)}
-                    disabled={page === totalPages}
-                    className="rounded px-2 py-1 hover:bg-slate-100 disabled:opacity-30"
-                  >»</button>
-                </div>
+            <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 px-5 py-4 text-sm text-slate-400">
+              <span>Showing {startRow} to {endRow} of {total} entries</span>
+              <div className="flex items-center gap-1 rounded-full bg-slate-100 p-1">
+                <button type="button" onClick={() => setPage((prev) => Math.max(1, prev - 1))} disabled={page === 1} className="rounded-full px-3 py-1 text-slate-500 hover:bg-white disabled:opacity-30">
+                  ‹
+                </button>
+                {Array.from({ length: Math.min(5, totalPages) }, (_, index) => {
+                  const value = Math.max(1, Math.min(page - 2, totalPages - 4)) + index;
+                  return (
+                    <button
+                      key={value}
+                      type="button"
+                      onClick={() => setPage(value)}
+                      className={`h-8 min-w-8 rounded-full px-2 font-semibold ${value === page ? "bg-[#7667ff] text-white" : "text-slate-600 hover:bg-white"}`}
+                    >
+                      {value}
+                    </button>
+                  );
+                })}
+                <button type="button" onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))} disabled={page === totalPages} className="rounded-full px-3 py-1 text-slate-500 hover:bg-white disabled:opacity-30">
+                  ›
+                </button>
               </div>
-            )}
-          </div>
-
+            </div>
+          </section>
         </div>
       </main>
     </div>
   );
 };
+
+const BriefcaseIcon = ({ className = "h-5 w-5" }) => <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2" /></svg>;
+const TagIcon = () => <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a4 4 0 014-4z" /></svg>;
+const LinkIcon = () => <svg className="h-5 w-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>;
+const UnlinkIcon = () => <svg className="h-5 w-5 text-red-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" /></svg>;
+const EyeIcon = () => <svg className="h-4 w-4 shrink-0 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M2.458 12C3.732 7.943 7.523 5 12 5s8.268 2.943 9.542 7c-1.274 4.057-5.065 7-9.542 7S3.732 16.057 2.458 12z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>;
 
 export default OperationsMasterPage;

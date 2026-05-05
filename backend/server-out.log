@@ -1,1 +1,4 @@
-Server running on http://localhost:5000
+
+> rico-part-master-backend@1.0.0 start
+> node server.js
+

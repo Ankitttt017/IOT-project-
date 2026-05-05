@@ -141,11 +141,11 @@ function matchesMachineType(name = "", type = "") {
 // ── Dropdown component ────────────────────────────────────────────────────────
 const Select = ({ label, value, onChange, options }) => (
   <div className="flex flex-col gap-1">
-    <label className="text-xs font-semibold text-gray-600">{label}</label>
+    <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">{label}</label>
     <select
       value={value}
       onChange={e => onChange(e.target.value)}
-      className="h-10 rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-700 font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition"
+      className="h-11 rounded-lg border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 shadow-sm transition focus:border-teal-500 focus:outline-none focus:ring-4 focus:ring-teal-50"
     >
       {options.map(o => (
         <option key={o.value} value={o.value}>{o.label}</option>
@@ -229,29 +229,31 @@ const MachineDashboard = ({ onLogout, currentUser }) => {
   ), [enriched]);
 
   return (
-    <div className="min-h-screen bg-[#f4f6f8]">
+    <div className="min-h-screen app-page">
       <Navbar onLogout={onLogout} currentUser={currentUser} />
       <Sidebar />
 
-      <main className="pt-[88px] lg:pl-64">
+      <main className="pt-[94px] lg:pl-72">
         <div className="p-4 sm:p-6">
 
           {/* Breadcrumb */}
-          <div className="flex items-center gap-2 mb-4 text-sm">
-            <span className="font-bold text-gray-800">Organisation Master</span>
-            <span className="text-gray-400">|</span>
-            <span className="text-blue-600 font-semibold">Machines</span>
+          <div className="mb-5 flex items-center gap-2 text-sm">
+            <span className="font-bold text-slate-900">Organisation Master</span>
+            <span className="text-slate-300">|</span>
+            <span className="font-semibold text-teal-700">Machines</span>
           </div>
 
           {/* Header card */}
-          <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 mb-6">
-            <h2 className="text-lg font-bold text-gray-900 mb-1">Machine Master</h2>
-            <p className="text-sm text-gray-500 mb-5 leading-relaxed">
+          <div className="app-panel mb-6 rounded-2xl border border-slate-200 bg-white p-5">
+            <div className="mb-5 flex flex-col gap-1">
+              <h2 className="text-lg font-extrabold text-slate-950">Machine Master</h2>
+              <p className="max-w-5xl text-sm leading-relaxed text-slate-500">
               Machine Master is a list of all the machines in factory. This is a single point from where the machine history can be tracked and data pertaining to a specific machine can be availed. Machine Master also enables you to view overall statistics of the selected machine.
-            </p>
+              </p>
+            </div>
 
             {/* Filters */}
-            <div className="flex flex-wrap gap-4 items-end">
+            <div className="flex flex-wrap items-end gap-4 rounded-xl border border-slate-100 bg-slate-50/70 p-4">
               <Select
                 label="Select Plant"
                 value={plant}
@@ -273,7 +275,7 @@ const MachineDashboard = ({ onLogout, currentUser }) => {
 
               {/* Search */}
               <div className="flex flex-col gap-1">
-                <label className="text-xs font-semibold text-gray-600">Search Machine</label>
+                <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">Search Machine</label>
                 <div className="relative">
                   <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -282,7 +284,7 @@ const MachineDashboard = ({ onLogout, currentUser }) => {
                     value={search}
                     onChange={e => setSearch(e.target.value)}
                     placeholder="Search Machine..."
-                    className="h-10 w-52 rounded-lg border border-gray-200 bg-white pl-9 pr-3 text-sm text-gray-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition"
+                    className="h-11 w-52 rounded-lg border border-slate-200 bg-white pl-9 pr-3 text-sm text-slate-700 shadow-sm transition focus:border-teal-500 focus:outline-none focus:ring-4 focus:ring-teal-50"
                   />
                 </div>
               </div>
@@ -297,16 +299,19 @@ const MachineDashboard = ({ onLogout, currentUser }) => {
           </div>
 
           {/* Stats bar */}
-          <div className="flex flex-wrap gap-4 mb-5">
+          <div className="mb-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             {[
-              { label: "Total",   value: stats.total,   color: "text-gray-900",   bg: "bg-white" },
-              { label: "Running", value: stats.running, color: "text-green-700",  bg: "bg-green-50" },
-              { label: "Stopped", value: stats.stopped, color: "text-red-700",    bg: "bg-red-50" },
-              { label: "Idle",    value: stats.idle,    color: "text-orange-700", bg: "bg-orange-50" },
+              { label: "Total",   value: stats.total,   color: "text-slate-950",   bg: "bg-white", accent: "bg-slate-400" },
+              { label: "Running", value: stats.running, color: "text-emerald-700", bg: "bg-emerald-50", accent: "bg-emerald-500" },
+              { label: "Stopped", value: stats.stopped, color: "text-red-700",     bg: "bg-red-50", accent: "bg-red-500" },
+              { label: "Idle",    value: stats.idle,    color: "text-amber-700",   bg: "bg-amber-50", accent: "bg-amber-500" },
             ].map(s => (
-              <div key={s.label} className={`${s.bg} border border-gray-100 rounded-xl px-5 py-3 shadow-sm flex items-center gap-3`}>
-                <span className={`text-2xl font-extrabold ${s.color}`}>{s.value}</span>
-                <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">{s.label}</span>
+              <div key={s.label} className={`${s.bg} app-panel rounded-2xl border border-slate-100 px-5 py-4`}>
+                <div className="flex items-center justify-between">
+                  <span className={`text-3xl font-extrabold ${s.color}`}>{s.value}</span>
+                  <span className={`h-10 w-1.5 rounded-full ${s.accent}`} />
+                </div>
+                <span className="mt-2 block text-xs font-semibold uppercase tracking-wide text-slate-500">{s.label}</span>
               </div>
             ))}
           </div>

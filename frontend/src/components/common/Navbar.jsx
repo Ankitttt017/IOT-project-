@@ -136,7 +136,7 @@ const IconButton = ({ title, active, onClick, children }) => (
     type="button"
     onClick={onClick}
     title={title}
-    className={`flex h-10 w-10 items-center justify-center rounded-md border text-slate-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-100 ${
+    className={`flex h-10 w-10 items-center justify-center rounded-lg border text-slate-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-100 ${
       active ? "border-blue-200 bg-blue-50 text-blue-700" : "border-slate-200 bg-white hover:bg-slate-50"
     }`}
   >
@@ -157,6 +157,9 @@ const Navbar = ({ onLogout, currentUser }) => {
   const meta = useMemo(() => {
     if (location.pathname.startsWith("/part/")) {
       return { title: "Part Profile", subtitle: "Configuration, operations and document control" };
+    }
+    if (location.pathname.startsWith("/machine/")) {
+      return { title: "Machine Profile", subtitle: "Live state, configuration and maintenance view" };
     }
     return pageMeta[location.pathname] || pageMeta["/parts"];
   }, [location.pathname]);
@@ -203,14 +206,16 @@ const Navbar = ({ onLogout, currentUser }) => {
   };
 
   return (
-    <header className="fixed left-0 right-0 top-0 z-50 h-[72px] border-b border-slate-200 bg-white/95 px-4 shadow-sm backdrop-blur lg:left-64">
+    <header className="app-topbar fixed left-0 right-0 top-0 z-50 h-[78px] border-b px-4 shadow-sm backdrop-blur lg:left-72 lg:px-6">
       <div className="flex h-full items-center justify-between gap-4">
         {/* Left: page title */}
         <div className="min-w-0">
           <div className="mt-0.5 flex min-w-0 items-center gap-3">
-            <h1 className="truncate text-xl font-bold text-slate-900">{meta.title}</h1>
-            <span className="hidden h-5 w-px bg-slate-200 sm:block" />
-            <p className="hidden truncate text-sm text-slate-500 md:block">{meta.subtitle}</p>
+            <span className="hidden h-9 w-1 rounded-full bg-teal-600 sm:block" />
+            <div className="min-w-0">
+              <h1 className="truncate text-xl font-extrabold text-slate-950">{meta.title}</h1>
+              <p className="hidden truncate text-sm text-slate-500 md:block">{meta.subtitle}</p>
+            </div>
           </div>
         </div>
 
@@ -224,7 +229,7 @@ const Navbar = ({ onLogout, currentUser }) => {
             <input
               value={search}
               onChange={e => setSearch(e.target.value)}
-              className="h-10 w-64 rounded-md border border-slate-200 bg-slate-50 pl-9 pr-3 text-sm text-slate-800 outline-none transition focus:border-blue-400 focus:bg-white"
+              className="h-10 w-64 rounded-lg border border-slate-200 bg-slate-50 pl-9 pr-3 text-sm text-slate-800 outline-none transition focus:border-teal-500 focus:bg-white focus:ring-4 focus:ring-teal-50"
               placeholder={t("searchPartPlaceholder")}
             />
           </form>
@@ -235,9 +240,9 @@ const Navbar = ({ onLogout, currentUser }) => {
               type="button"
               onClick={() => setPickerOpen(prev => !prev)}
               title="Pick a date"
-              className={`flex items-center gap-2 rounded-md border px-3 py-2 text-sm font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-purple-100 ${
+              className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-teal-100 ${
                 pickerOpen
-                  ? "border-[#7667ff] bg-purple-50 text-[#7667ff]"
+                  ? "border-teal-500 bg-teal-50 text-teal-700"
                   : "border-slate-200 bg-slate-50 text-slate-700 hover:bg-white hover:border-slate-300"
               }`}
             >
@@ -269,7 +274,7 @@ const Navbar = ({ onLogout, currentUser }) => {
               <p className="text-sm font-bold capitalize text-slate-800">{user.name}</p>
               <p className="text-xs text-slate-500">{user.role}</p>
             </div>
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#1f6feb] text-sm font-bold text-white">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#102a43] text-sm font-bold text-white ring-4 ring-slate-100">
               {initials}
             </div>
           </div>
@@ -279,7 +284,7 @@ const Navbar = ({ onLogout, currentUser }) => {
             type="button"
             onClick={onLogout}
             title={t("logout")}
-            className="flex h-10 w-10 items-center justify-center rounded-md border border-slate-200 bg-white text-slate-500 transition-colors hover:bg-red-50 hover:text-red-600 focus:outline-none focus:ring-2 focus:ring-red-100"
+            className="flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 transition-colors hover:bg-red-50 hover:text-red-600 focus:outline-none focus:ring-2 focus:ring-red-100"
           >
             <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.7} d="M17 16l4-4m0 0l-4-4m4 4H9m4 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />

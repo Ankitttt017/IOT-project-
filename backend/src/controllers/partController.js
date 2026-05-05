@@ -137,9 +137,274 @@ const updatePartById = async (req, res) => {
 const getPartOperations = async (req, res) => {
   try {
     const { rows } = await db.query(
-      'SELECT * FROM operations WHERE part_code = ? ORDER BY sr_no', [req.params.id]
+      `WITH status_operations AS (
+         SELECT
+           part_code,
+           operation_no,
+           MIN(id) AS status_id,
+           MAX(updated_at) AS last_seen
+         FROM machine_status
+         WHERE part_code = ?
+           AND NULLIF(TRIM(operation_no), '') IS NOT NULL
+         GROUP BY part_code, operation_no
+       ),
+       deduped_operations AS (
+         SELECT
+           MIN(id) AS id,
+           part_code,
+           sr_no,
+           name,
+           type,
+           label,
+           rework,
+           MIN(created_at) AS created_at
+         FROM operations
+         WHERE part_code = ?
+         GROUP BY part_code, sr_no, name, type, label, rework
+       ),
+       mapped_operations AS (
+         SELECT DISTINCT ON (so.operation_no)
+           COALESCE(o.id, so.status_id) AS id,
+           so.part_code,
+           o.sr_no,
+           COALESCE(o.name, CONCAT('Operation ', so.operation_no)) AS name,
+           COALESCE(o.type, 'RECORDED') AS type,
+           COALESCE(o.label, so.operation_no) AS label,
+           COALESCE(o.rework, 'No rework assigned') AS rework,
+           so.operation_no,
+           so.last_seen,
+           o.created_at
+         FROM status_operations so
+         LEFT JOIN deduped_operations o
+           ON o.part_code = so.part_code
+          AND (
+            UPPER(TRIM(so.operation_no)) = UPPER(TRIM(o.label))
+            OR UPPER(TRIM(so.operation_no)) = UPPER(TRIM(o.sr_no::text))
+            OR REGEXP_REPLACE(UPPER(TRIM(so.operation_no)), '^OP-?', '') =
+               REGEXP_REPLACE(UPPER(TRIM(COALESCE(o.label, o.sr_no::text))), '^OP-?', '')
+          )
+         ORDER BY so.operation_no, o.sr_no NULLS LAST, o.id
+       )
+       SELECT
+         o.*,
+         COALESCE(
+           json_agg(DISTINCT
+             jsonb_build_object(
+               'id', m.id,
+               'machineCode', m.machine_code,
+               'name', COALESCE(m.name, m.machine_code),
+               'status', ms.status,
+               'lastSeen', ms.updated_at
+             )
+           ) FILTER (WHERE m.id IS NOT NULL),
+           '[]'::json
+         ) AS machines
+       FROM mapped_operations o
+       LEFT JOIN machine_status ms
+         ON ms.part_code = o.part_code
+        AND (
+          UPPER(TRIM(ms.operation_no)) = UPPER(TRIM(o.operation_no))
+          OR UPPER(TRIM(ms.operation_no)) = UPPER(TRIM(o.label))
+          OR REGEXP_REPLACE(UPPER(TRIM(ms.operation_no)), '^OP-?', '') =
+             REGEXP_REPLACE(UPPER(TRIM(o.label)), '^OP-?', '')
+        )
+       LEFT JOIN machines m ON m.id = ms.machine_id
+       GROUP BY o.id, o.part_code, o.sr_no, o.name, o.type, o.label, o.rework, o.operation_no, o.last_seen, o.created_at
+       ORDER BY o.last_seen DESC NULLS LAST, o.sr_no NULLS LAST, o.label NULLS LAST, o.id`,
+      [req.params.id, req.params.id]
     );
     res.json({ success: true, data: rows });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+// GET /api/operations?plant=1002&part=80000000&search=die&page=1&limit=10
+const getOperationMaster = async (req, res) => {
+  try {
+    const { plant, part, search, page = 1, limit = 10 } = req.query;
+    const pageNumber = Math.max(1, parseInt(page, 10) || 1);
+    const pageSize = Math.max(1, parseInt(limit, 10) || 10);
+    const offset = (pageNumber - 1) * pageSize;
+    const params = [];
+    const whereClauses = [];
+
+    if (plant) {
+      whereClauses.push('p.plant_code = ?');
+      params.push(plant);
+    }
+    if (part) {
+      whereClauses.push('o.part_code = ?');
+      params.push(part);
+    }
+    if (search) {
+      whereClauses.push(`(
+        LOWER(COALESCE(o.name, '')) LIKE ?
+        OR LOWER(COALESCE(o.label, '')) LIKE ?
+        OR LOWER(COALESCE(o.type, '')) LIKE ?
+        OR LOWER(COALESCE(p.description, '')) LIKE ?
+        OR LOWER(COALESCE(o.part_code, '')) LIKE ?
+      )`);
+      const term = `%${String(search).toLowerCase()}%`;
+      params.push(term, term, term, term, term);
+    }
+
+    const where = whereClauses.length ? `WHERE ${whereClauses.join(' AND ')}` : '';
+    const baseQuery = `
+      WITH filtered_operations AS (
+        SELECT
+          MIN(o.id) AS id,
+          o.part_code,
+          o.sr_no,
+          o.label AS operation_id,
+          o.name AS operation_name,
+          o.type,
+          o.rework,
+          MIN(o.created_at) AS created_at
+        FROM operations o
+        LEFT JOIN parts p ON p.material_code = o.part_code
+        ${where}
+        GROUP BY o.part_code, o.sr_no, o.label, o.name, o.type, o.rework
+      )
+    `;
+
+    const { rows: countRows } = await db.query(
+      `${baseQuery} SELECT COUNT(*) AS total FROM filtered_operations`,
+      params
+    );
+
+    const { rows: statsRows } = await db.query(
+      `${baseQuery}
+       SELECT
+         COUNT(*) AS total,
+         COUNT(DISTINCT type) FILTER (WHERE type IS NOT NULL AND type <> '') AS types,
+         COUNT(*) FILTER (WHERE part_code IS NOT NULL AND part_code <> '') AS linked,
+         0 AS unlinked
+       FROM filtered_operations`,
+      params
+    );
+
+    const { rows } = await db.query(
+      `${baseQuery}
+       SELECT
+         d.id,
+         d.sr_no,
+         d.operation_id,
+         d.operation_name,
+         d.type,
+         d.rework,
+         d.part_code,
+         p.description AS linked_part,
+         p.plant_code,
+         d.created_at AS modified_at,
+         COALESCE(machine_counts.machine_count, 0) AS machine_count
+       FROM filtered_operations d
+       LEFT JOIN parts p ON p.material_code = d.part_code
+       LEFT JOIN (
+         SELECT part_code, operation_no, COUNT(DISTINCT machine_id) AS machine_count
+         FROM machine_status
+         GROUP BY part_code, operation_no
+       ) machine_counts
+         ON machine_counts.part_code = d.part_code
+       AND (
+          UPPER(TRIM(machine_counts.operation_no)) = UPPER(TRIM(d.operation_id))
+          OR UPPER(TRIM(machine_counts.operation_no)) = UPPER(TRIM(d.sr_no::text))
+          OR REGEXP_REPLACE(UPPER(TRIM(machine_counts.operation_no)), '^OP-?', '') =
+             REGEXP_REPLACE(UPPER(TRIM(COALESCE(d.operation_id, d.sr_no::text))), '^OP-?', '')
+        )
+       ORDER BY d.sr_no NULLS LAST, d.operation_id NULLS LAST, d.id
+       LIMIT ? OFFSET ?`,
+      [...params, pageSize, offset]
+    );
+
+    res.json({
+      success: true,
+      data: rows,
+      total: Number(countRows[0]?.total || 0),
+      stats: {
+        total: Number(statsRows[0]?.total || 0),
+        types: Number(statsRows[0]?.types || 0),
+        linked: Number(statsRows[0]?.linked || 0),
+        unlinked: Number(statsRows[0]?.unlinked || 0),
+      },
+      page: pageNumber,
+      limit: pageSize,
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+// PUT /api/parts/:id/operations/:operationId
+const updatePartOperation = async (req, res) => {
+  try {
+    const { rows } = await db.query(
+      'SELECT * FROM operations WHERE id = ? AND part_code = ?',
+      [req.params.operationId, req.params.id]
+    );
+    if (!rows.length) return res.status(404).json({ success: false, message: 'Operation not found' });
+
+    const current = rows[0];
+    const next = {
+      sr_no: req.body.sr_no === '' || req.body.sr_no == null ? null : Number(req.body.sr_no),
+      name: req.body.name || null,
+      type: req.body.type || null,
+      label: req.body.label || null,
+      rework: req.body.rework || 'No rework assigned',
+    };
+
+    await db.run(
+      `UPDATE operations
+       SET sr_no = ?, name = ?, type = ?, label = ?, rework = ?
+       WHERE part_code = ?
+         AND sr_no IS NOT DISTINCT FROM ?
+         AND name IS NOT DISTINCT FROM ?
+         AND type IS NOT DISTINCT FROM ?
+         AND label IS NOT DISTINCT FROM ?
+         AND rework IS NOT DISTINCT FROM ?`,
+      [
+        next.sr_no,
+        next.name,
+        next.type,
+        next.label,
+        next.rework,
+        req.params.id,
+        current.sr_no,
+        current.name,
+        current.type,
+        current.label,
+        current.rework,
+      ]
+    );
+
+    res.json({ success: true, message: 'Operation updated' });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+// DELETE /api/parts/:id/operations/:operationId
+const deletePartOperation = async (req, res) => {
+  try {
+    const { rows } = await db.query(
+      'SELECT * FROM operations WHERE id = ? AND part_code = ?',
+      [req.params.operationId, req.params.id]
+    );
+    if (!rows.length) return res.status(404).json({ success: false, message: 'Operation not found' });
+
+    const current = rows[0];
+    await db.run(
+      `DELETE FROM operations
+       WHERE part_code = ?
+         AND sr_no IS NOT DISTINCT FROM ?
+         AND name IS NOT DISTINCT FROM ?
+         AND type IS NOT DISTINCT FROM ?
+         AND label IS NOT DISTINCT FROM ?
+         AND rework IS NOT DISTINCT FROM ?`,
+      [req.params.id, current.sr_no, current.name, current.type, current.label, current.rework]
+    );
+
+    res.json({ success: true, message: 'Operation removed' });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
@@ -351,7 +616,9 @@ const getStats = async (req, res) => {
 
 module.exports = {
   getAllPlants, getPartsByPlant, getPartById, updatePartById,
-  getPartOperations, getPartConfiguration, updatePartConfiguration,
+  getOperationMaster,
+  getPartOperations, updatePartOperation, deletePartOperation,
+  getPartConfiguration, updatePartConfiguration,
   getPartSheets, uploadPartSheet, downloadPartSheet,
   getMaterials, getStats,
 };

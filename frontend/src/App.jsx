@@ -5,6 +5,7 @@ import PartMasterPage from "./pages/PartMasterPage";
 import PartProfilePage from "./pages/PartProfilePage";
 import OperationsMasterPage from "./pages/OperationsMasterPage";
 import MachineDashboard from "./modules/machine/MachineDashboard";
+import MachineProfilePage from "./modules/machine/MachineProfilePage";
 import { I18nProvider } from "./context/I18nContext";
 
 function getSavedUser() {
@@ -55,6 +56,7 @@ const App = () => {
           <Route path="/organisation-master/machines" element={<Navigate to="/machines" />} />
           <Route path="/part-operations/machine-master" element={<Navigate to="/machines" />} />
           <Route path="/machines" element={<MachineDashboard onLogout={handleLogout} currentUser={currentUser} />} />
+          <Route path="/machine/:id" element={<MachineProfilePage onLogout={handleLogout} currentUser={currentUser} />} />
           <Route path="/operations" element={<OperationsMasterPage onLogout={handleLogout} currentUser={currentUser} />} />
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>

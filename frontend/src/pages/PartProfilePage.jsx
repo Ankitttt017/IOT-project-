@@ -196,11 +196,11 @@ const PartProfilePage = ({ onLogout, currentUser }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 app-page">
+    <div className="min-h-screen app-page">
       <Navbar onLogout={onLogout} currentUser={currentUser} />
       <Sidebar />
 
-      <main className="pt-[88px] lg:pl-64">
+      <main className="pt-[94px] lg:pl-72">
         <div className="p-4 sm:p-6 max-w-[1540px] mx-auto">
           <div className="flex items-center gap-1.5 mb-4 text-sm text-gray-500">
             <button onClick={() => navigate("/parts")} className="app-brand-text font-semibold hover:underline">{t("partMaster")}</button>
@@ -217,11 +217,6 @@ const PartProfilePage = ({ onLogout, currentUser }) => {
                   <div className="h-20 w-20 rounded-md border border-slate-100 bg-slate-50 p-3">
                     <RicoIcon />
                   </div>
-                  <button className="text-[#7667ff]" title={t("edit")}>
-                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                    </svg>
-                  </button>
                 </div>
 
                 <div className="mt-5 text-center">
@@ -234,13 +229,30 @@ const PartProfilePage = ({ onLogout, currentUser }) => {
                 </div>
 
                 <div className="mt-5 border-t border-slate-100 pt-4">
-                  <InfoBlock
+                  <EditableInfoRow
                     label="Final Operation New"
                     value={part.final_opn_code || part.opn_number || `${part.description || part.material_code}`}
                     editable
+                    onSave={(v) => savePartField("final_opn_code", v)}
+                    saveLabel={t("save")}
+                    cancelLabel={t("cancel")}
                   />
-                  <InfoBlock label={t("customer")} value={part.customer} editable />
-                  <InfoBlock label={t("plant")} value={part.plant_code} editable />
+                  <EditableInfoRow
+                    label={t("customer")}
+                    value={part.customer}
+                    editable
+                    onSave={(v) => savePartField("customer", v)}
+                    saveLabel={t("save")}
+                    cancelLabel={t("cancel")}
+                  />
+                  <EditableInfoRow
+                    label={t("plant")}
+                    value={part.plant_code}
+                    editable
+                    onSave={(v) => savePartField("plant_code", v)}
+                    saveLabel={t("save")}
+                    cancelLabel={t("cancel")}
+                  />
                   <InfoBlock label={t("totalProduced")} value={String(part.total_produced || 0)} />
                   <InfoBlock label={t("version")} value={part.version} />
                   <InfoBlock label={t("registeredOn")} value={part.registered_on || formatDate(part.created_at)} />
@@ -292,7 +304,14 @@ const PartProfilePage = ({ onLogout, currentUser }) => {
                 </div>
 
                 <div className="p-6 sm:p-8">
-                  {activeTab === "operations" && <OperationsTab part={partData} partId={id} onSheetsChange={setSheets} />}
+                  {activeTab === "operations" && (
+                    <OperationsTab
+                      part={partData}
+                      partId={id}
+                      onOperationsChange={setOperations}
+                      onSheetsChange={setSheets}
+                    />
+                  )}
                   {activeTab === "configuration" && <ConfigurationTab part={partData} partId={id} onConfigChange={setConfig} onPartChange={setPart} />}
                   {activeTab === "production-orders" && <ProductionOrdersTab />}
                   {activeTab === "production-log" && <ProductionLogTab />}

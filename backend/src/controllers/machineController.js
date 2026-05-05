@@ -51,4 +51,32 @@ const getMachines = async (req, res) => {
   }
 };
 
-module.exports = { getMachines };
+// GET /api/machines/:id/status-history
+const getMachineStatusHistory = async (req, res) => {
+  try {
+    const { rows } = await db.query(
+      `SELECT
+         id,
+         machine_id,
+         status,
+         part_code,
+         operation_no,
+         updated_at,
+         created_at
+       FROM machine_status
+       WHERE machine_id = ?
+       ORDER BY updated_at ASC NULLS LAST, created_at ASC NULLS LAST, id ASC`,
+      [req.params.id]
+    );
+
+    res.json({ success: true, data: rows });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: "Unable to load machine status history",
+      error: err.message,
+    });
+  }
+};
+
+module.exports = { getMachines, getMachineStatusHistory };

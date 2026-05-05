@@ -30,39 +30,61 @@ const LoginPage = ({ onLogin }) => {
   };
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(15,118,110,0.22),_transparent_28rem),linear-gradient(135deg,_#0f2438_0%,_#17324d_52%,_#0f766e_130%)] flex items-center justify-center p-4">
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {[...Array(6)].map((_, i) => (
-          <div
-            key={i}
-            className="absolute rounded-full border border-white/5"
-            style={{
-              width: `${(i + 2) * 160}px`,
-              height: `${(i + 2) * 160}px`,
-              top: "50%",
-              left: "50%",
-              transform: "translate(-50%, -50%)",
-            }}
-          />
-        ))}
-      </div>
-
-      <div className="w-full max-w-md relative">
-        <div className="bg-white rounded-2xl shadow-2xl overflow-hidden">
-          <div className="bg-[#17324d] px-8 pt-10 pb-8 text-center">
-            <div className="inline-flex flex-col items-center mb-4">
-              <BrandLogo light />
+    <div className="min-h-screen bg-[#eef3f7] flex items-center justify-center px-4 py-8">
+      <div className="w-full max-w-5xl overflow-hidden rounded-2xl bg-white shadow-[0_24px_70px_rgba(15,36,56,0.18)] ring-1 ring-slate-200 lg:grid lg:grid-cols-[1.05fr_0.95fr]">
+        <section className="relative hidden min-h-[620px] bg-[#102a43] px-10 py-12 text-white lg:flex lg:flex-col lg:justify-between">
+          <div className="absolute inset-0 bg-[linear-gradient(145deg,_rgba(15,118,110,0.92)_0%,_rgba(16,42,67,0.98)_48%,_rgba(11,31,51,1)_100%)]" />
+          <div className="absolute inset-x-0 bottom-0 h-52 bg-[linear-gradient(0deg,_rgba(0,0,0,0.22),_transparent)]" />
+          <div className="relative">
+            <div className="inline-flex rounded-xl bg-white p-4 shadow-xl shadow-black/10">
+              <BrandLogo className="justify-center" />
             </div>
-            <div className="w-16 h-0.5 bg-white/20 mx-auto mt-3" />
-            <p className="text-white/70 text-sm mt-3">{t("partMasterManagementSystem")}</p>
+            <div className="mt-12 max-w-md">
+              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-teal-100">
+                {t("companyName")}
+              </p>
+              <h1 className="mt-4 text-4xl font-bold leading-tight text-white">
+                {t("IOT DEVICE MANAGEMENT")}
+              </h1>
+              <p className="mt-5 text-base leading-7 text-white/75">
+                Secure access for part data, machine profiles, and production-ready master records.
+              </p>
+            </div>
+          </div>
+          <div className="relative grid grid-cols-3 gap-3 border-t border-white/15 pt-6 text-sm text-white/75">
+            <div>
+              <div className="text-2xl font-bold text-white">24/7</div>
+              <div>Operations</div>
+            </div>
+            <div>
+              <div className="text-2xl font-bold text-white">ISO</div>
+              <div>Ready data</div>
+            </div>
+            <div>
+              <div className="text-2xl font-bold text-white">RICO</div>
+              <div>Industrial system</div>
+            </div>
+          </div>
+        </section>
+
+        <section className="px-6 py-8 sm:px-10 lg:px-12 lg:py-12">
+          <div className="mb-8 flex justify-center lg:hidden">
+            <div className="rounded-xl bg-white px-5 py-4 shadow-lg ring-1 ring-slate-200">
+              <BrandLogo className="justify-center" />
+            </div>
           </div>
 
-          <div className="px-8 py-8">
-            <h2 className="text-xl font-bold text-gray-800 mb-1">{t("welcomeBack")}</h2>
-            <p className="text-sm text-gray-400 mb-6">{t("signInContinue")}</p>
+          <div className="mx-auto max-w-md">
+            <div className="mb-8">
+              <p className="mb-3 text-sm font-semibold uppercase tracking-[0.16em] text-teal-700">
+                Secure sign in
+              </p>
+              <h2 className="text-3xl font-bold text-slate-900">{t("welcomeBack")}</h2>
+              <p className="mt-2 text-sm leading-6 text-slate-500">{t("signInContinue")}</p>
+            </div>
 
             {error && (
-              <div className="mb-4 flex items-center gap-2 bg-red-50 border border-red-200 text-red-600 text-sm px-4 py-3 rounded-lg">
+              <div className="mb-5 flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
                 <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
@@ -70,11 +92,11 @@ const LoginPage = ({ onLogin }) => {
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-5">
               <div>
-                <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">{t("username")}</label>
+                <label className="mb-2 block text-xs font-semibold uppercase tracking-wide text-slate-600">{t("username")}</label>
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                     </svg>
@@ -84,15 +106,15 @@ const LoginPage = ({ onLogin }) => {
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     placeholder={t("enterUsername")}
-                    className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-100 focus:border-teal-600 transition-all"
+                    className="w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-3.5 pl-11 text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 focus:border-teal-600 focus:bg-white focus:ring-4 focus:ring-teal-100"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">{t("password")}</label>
+                <label className="mb-2 block text-xs font-semibold uppercase tracking-wide text-slate-600">{t("password")}</label>
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                     </svg>
@@ -102,12 +124,13 @@ const LoginPage = ({ onLogin }) => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder={t("enterPassword")}
-                    className="w-full pl-10 pr-10 py-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-100 focus:border-teal-600 transition-all"
+                    className="w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-3.5 pl-11 pr-11 text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 focus:border-teal-600 focus:bg-white focus:ring-4 focus:ring-teal-100"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPass(!showPass)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 transition-colors hover:text-slate-700"
+                    aria-label={showPass ? "Hide password" : "Show password"}
                   >
                     {showPass ? (
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -126,7 +149,7 @@ const LoginPage = ({ onLogin }) => {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-[#17324d] hover:bg-[#245174] text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 flex items-center justify-center gap-2 mt-2 disabled:opacity-70"
+                className="mt-2 flex w-full items-center justify-center gap-2 rounded-lg bg-[#17324d] px-4 py-3.5 font-semibold text-white shadow-lg shadow-slate-900/15 transition-all duration-200 hover:bg-[#245174] focus:outline-none focus:ring-4 focus:ring-slate-200 disabled:cursor-not-allowed disabled:opacity-70"
               >
                 {loading ? (
                   <>
@@ -147,11 +170,11 @@ const LoginPage = ({ onLogin }) => {
               </button>
             </form>
 
-            <p className="text-center text-xs text-gray-400 mt-6">
-              (c) 2025 {t("companyName")}. {t("allRightsReserved")}
+            <p className="mt-8 text-center text-xs text-slate-400">
+              (c) 2026 {t("companyName")}. {t("allRightsReserved")}
             </p>
           </div>
-        </div>
+        </section>
       </div>
     </div>
   );
