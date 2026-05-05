@@ -111,7 +111,20 @@ const TraceabilityInfoRow = ({ value, onSave, label, enabledLabel, disabledLabel
   );
 };
 
-const PartProfilePage = ({ onLogout }) => {
+const tabIcons = {
+  operations: "M4 19V5m5 14V9m5 10V7m5 12v-8",
+  configuration: "M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z",
+  "production-orders": "M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10",
+  "production-log": "M9 17v-2m3 2v-6m3 6v-4m3 8H6a2 2 0 01-2-2V5a2 2 0 012-2h7l5 5v11a2 2 0 01-2 2z",
+};
+
+const LockedIcon = () => (
+  <svg className="h-3.5 w-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+  </svg>
+);
+
+const PartProfilePage = ({ onLogout, currentUser }) => {
   const { t } = useI18n();
   const { id } = useParams();
   const navigate = useNavigate();
@@ -167,7 +180,7 @@ const PartProfilePage = ({ onLogout }) => {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-lg font-bold text-gray-600 mb-2">{error || t("partNotFound")}</h2>
-          <button onClick={() => navigate("/")} className="app-brand-text hover:underline text-sm">&larr; {t("backToPartMaster")}</button>
+          <button onClick={() => navigate("/parts")} className="app-brand-text hover:underline text-sm">&larr; {t("backToPartMaster")}</button>
         </div>
       </div>
     );
@@ -184,34 +197,59 @@ const PartProfilePage = ({ onLogout }) => {
 
   return (
     <div className="min-h-screen bg-gray-50 app-page">
-      <Navbar onLogout={onLogout} />
+      <Navbar onLogout={onLogout} currentUser={currentUser} />
       <Sidebar />
 
-      <main className="pt-14 pl-14">
-        <div className="p-4 sm:p-6">
+      <main className="pt-[88px] lg:pl-64">
+        <div className="p-4 sm:p-6 max-w-[1540px] mx-auto">
           <div className="flex items-center gap-1.5 mb-4 text-sm text-gray-500">
-            <button onClick={() => navigate("/")} className="app-brand-text font-semibold hover:underline">{t("partMaster")}</button>
+            <button onClick={() => navigate("/parts")} className="app-brand-text font-semibold hover:underline">{t("partMaster")}</button>
             <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
             <span className="text-gray-500 font-mono truncate max-w-xs">{id}</span>
           </div>
 
-          <div className="flex flex-col lg:flex-row gap-4">
+          <div className="grid gap-6 xl:grid-cols-[340px_minmax(0,1fr)]">
             <div className="w-full lg:w-72 xl:w-80 flex-shrink-0">
-              <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
-                <div className="flex justify-center mb-4">
-                  <div className="w-20 h-20"><RicoIcon /></div>
+              <div className="rounded-md border border-slate-200 bg-white p-5 shadow-sm">
+                <div className="flex items-start justify-between">
+                  <div className="h-20 w-20 rounded-md border border-slate-100 bg-slate-50 p-3">
+                    <RicoIcon />
+                  </div>
+                  <button className="text-[#7667ff]" title={t("edit")}>
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                  </button>
                 </div>
-                <div className="text-center mb-4">
-                  <h2 className="text-sm font-bold text-gray-800 leading-tight mb-2">{part.description}</h2>
+
+                <div className="mt-5 text-center">
+                  <h2 className="text-lg font-bold leading-tight text-[#5f5b7b]">{part.description}</h2>
                   {part.material_group && (
-                    <span className="inline-block app-badge text-[10px] font-bold px-2 py-1 rounded-full tracking-wide">
+                    <span className="mt-2 inline-block rounded bg-slate-100 px-2 py-1 text-xs font-bold text-slate-500">
                       {part.material_group}
                     </span>
                   )}
                 </div>
-                <div className="border-t border-gray-100 pt-4 space-y-0.5">
+
+                <div className="mt-5 border-t border-slate-100 pt-4">
+                  <InfoBlock
+                    label="Final Operation New"
+                    value={part.final_opn_code || part.opn_number || `${part.description || part.material_code}`}
+                    editable
+                  />
+                  <InfoBlock label={t("customer")} value={part.customer} editable />
+                  <InfoBlock label={t("plant")} value={part.plant_code} editable />
+                  <InfoBlock label={t("totalProduced")} value={String(part.total_produced || 0)} />
+                  <InfoBlock label={t("version")} value={part.version} />
+                  <InfoBlock label={t("registeredOn")} value={part.registered_on || formatDate(part.created_at)} />
+                  <InfoBlock label={t("registeredBy")} value={part.registered_by} />
+                  <InfoBlock label={t("revisionDate")} value={part.revision_date} />
+                  <InfoBlock label={t("revisedBy")} value={part.revised_by} />
+                </div>
+
+                <div className="mt-5 border-t border-slate-100 pt-4 space-y-0.5">
                   <EditableInfoRow label={t("materialCode")} value={part.material_code} editable={false} saveLabel={t("save")} cancelLabel={t("cancel")} />
                   <EditableInfoRow label={t("finalOpnCode")} value={part.final_opn_code} editable onSave={(v) => savePartField("final_opn_code", v)} saveLabel={t("save")} cancelLabel={t("cancel")} />
                   <EditableInfoRow label={t("opnNumber")} value={part.opn_number} editable onSave={(v) => savePartField("opn_number", v)} saveLabel={t("save")} cancelLabel={t("cancel")} />
@@ -227,32 +265,33 @@ const PartProfilePage = ({ onLogout }) => {
                   <EditableInfoRow label={t("unitOfMeasure")} value={part.unit_of_measure} saveLabel={t("save")} cancelLabel={t("cancel")} />
                   <EditableInfoRow label={t("cycleTimeSec")} value={part.cycle_time_sec ? `${part.cycle_time_sec}s` : null} saveLabel={t("save")} cancelLabel={t("cancel")} />
                   <EditableInfoRow label={t("manufacturingType")} value={part.manufacturing_type} editable onSave={(v) => savePartField("manufacturing_type", v)} saveLabel={t("save")} cancelLabel={t("cancel")} />
-                  <EditableInfoRow label={t("totalProduced")} value={String(part.total_produced || 0)} saveLabel={t("save")} cancelLabel={t("cancel")} />
-                  <EditableInfoRow label={t("registeredOn")} value={part.registered_on} saveLabel={t("save")} cancelLabel={t("cancel")} />
-                  <EditableInfoRow label={t("revisionDate")} value={part.revision_date} saveLabel={t("save")} cancelLabel={t("cancel")} />
                 </div>
               </div>
             </div>
 
             <div className="flex-1 min-w-0">
-              <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
-                <div className="border-b border-gray-200 overflow-x-auto">
-                  <div className="flex min-w-max">
+              <div className="overflow-hidden rounded-md border border-slate-200 bg-white shadow-sm">
+                <div className="overflow-x-auto border-b border-slate-100">
+                  <div className="grid min-w-[820px] grid-cols-4">
                     {tabs.map((tab) => (
                       <button
                         key={tab.key}
                         onClick={() => setActiveTab(tab.key)}
-                        className={`flex items-center gap-1.5 px-5 py-4 text-sm font-medium transition-colors whitespace-nowrap ${
-                          activeTab === tab.key ? "border-b-2 border-teal-600 text-teal-700" : "text-gray-500 hover:text-gray-700"
+                        className={`flex items-center justify-center gap-2 border-b-2 px-5 py-4 text-sm font-semibold transition-colors whitespace-nowrap ${
+                          activeTab === tab.key ? "border-[#7667ff] text-[#7667ff]" : "border-transparent text-slate-500 hover:text-slate-700"
                         }`}
                       >
+                        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.6} d={tabIcons[tab.key]} />
+                        </svg>
                         {tab.label}
+                        {["production-orders", "production-log"].includes(tab.key) && <LockedIcon />}
                       </button>
                     ))}
                   </div>
                 </div>
 
-                <div className="p-4 sm:p-6">
+                <div className="p-6 sm:p-8">
                   {activeTab === "operations" && <OperationsTab part={partData} partId={id} onSheetsChange={setSheets} />}
                   {activeTab === "configuration" && <ConfigurationTab part={partData} partId={id} onConfigChange={setConfig} onPartChange={setPart} />}
                   {activeTab === "production-orders" && <ProductionOrdersTab />}
@@ -266,5 +305,28 @@ const PartProfilePage = ({ onLogout }) => {
     </div>
   );
 };
+
+const InfoBlock = ({ label, value, editable }) => (
+  <div className="group mb-4">
+    <div className="flex items-center justify-between gap-3">
+      <p className="text-[15px] font-semibold text-[#5f5b7b]">{label}</p>
+      {editable && (
+        <svg className="h-4 w-4 shrink-0 text-[#7667ff] opacity-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+        </svg>
+      )}
+    </div>
+    <p className={`mt-2 text-sm leading-5 ${value ? "text-[#7667ff]" : "text-slate-400"}`}>
+      {value || "-"}
+    </p>
+  </div>
+);
+
+function formatDate(value) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return date.toLocaleString();
+}
 
 export default PartProfilePage;

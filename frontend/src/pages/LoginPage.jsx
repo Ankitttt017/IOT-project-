@@ -20,8 +20,8 @@ const LoginPage = ({ onLogin }) => {
 
     setLoading(true);
     setTimeout(() => {
-      if (username === "admin" && password === "admin121") {
-        onLogin();
+      if (password === "admin121") {
+        onLogin(username);
       } else {
         setError(t("loginErrorInvalid"));
         setLoading(false);

@@ -29,8 +29,8 @@ const OperationsTab = ({ part, partId, onSheetsChange }) => {
             <tbody className="divide-y divide-gray-100">
               {part.operations.length > 0 ? (
                 part.operations.map((op) => (
-                  <tr key={op.sr} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-4 py-3 text-gray-600 font-medium">{op.sr}</td>
+                  <tr key={op.id || op.sr_no || op.sr} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-4 py-3 text-gray-600 font-medium">{op.sr_no || op.sr}</td>
                     <td className="px-4 py-3 text-gray-800 font-medium max-w-xs">
                       <p className="truncate">{op.name}</p>
                     </td>
@@ -63,8 +63,11 @@ const OperationsTab = ({ part, partId, onSheetsChange }) => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={6} className="px-4 py-6 text-center text-gray-400 text-sm font-medium">
-                    {t("operationsUnavailable")}
+                  <td colSpan={6} className="px-4 py-8 text-center">
+                    <p className="text-sm font-semibold text-gray-500">{t("operationsUnavailable")}</p>
+                    <p className="mt-1 text-xs text-gray-400">
+                      No rows found in PostgreSQL `operations` for part code {partId}.
+                    </p>
                   </td>
                 </tr>
               )}

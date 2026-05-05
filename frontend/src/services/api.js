@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: '/api',
+  baseURL: import.meta.env.VITE_API_BASE_URL,
   timeout: 10000,
 });
 
@@ -15,5 +15,6 @@ export const uploadSheet    = (id, type, d) => api.post(`/parts/${id}/sheets/${t
 export const getConfig      = (id)      => api.get(`/parts/${id}/configuration`);
 export const updateConfig   = (id, d)   => api.put(`/parts/${id}/configuration`, d);
 export const getStats       = (params)  => api.get('/stats', { params });
+export const getMachines    = ()        => api.get('/machines');
 
 export default api;

@@ -1,27 +1,134 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useI18n } from "../../context/I18nContext";
-import BrandLogo from "./BrandLogo";
 
-const languages = [
-  { code: "EN", label: "English" },
-  { code: "HI", label: "Hindi" },
+const pageMeta = {
+  "/parts":      { title: "Part Master",       subtitle: "Material, traceability and process master data" },
+  "/machines":   { title: "Machine Tracking",  subtitle: "Live machine state and active operation view" },
+  "/operations": { title: "Operation Master",  subtitle: "Part routing, process steps and logs" },
+};
+
+const DAYS   = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
+const MONTHS = [
+  "January","February","March","April","May","June",
+  "July","August","September","October","November","December",
 ];
 
-const orgItems = [
-  { key: "plants", fallback: "Plants" },
-  { key: "departments", fallback: "Departments" },
-  { key: "machines", fallback: "Machines" },
-  { key: "users", fallback: "Users" },
-  { key: "roles", fallback: "Roles" },
-];
-const legacyOrgMap = {
-  "Organisation Setup": "organisationSetup",
-  Plants: "plants",
-  Departments: "departments",
-  Machines: "machines",
-  Users: "users",
-  Roles: "roles",
+/** Mini inline calendar picker */
+const DatePicker = ({ selectedDate, onChange, onClose }) => {
+  const today = new Date();
+  const [view, setView] = useState({
+    year:  selectedDate ? selectedDate.getFullYear()  : today.getFullYear(),
+    month: selectedDate ? selectedDate.getMonth()     : today.getMonth(),
+  });
+
+  const firstDay = new Date(view.year, view.month, 1).getDay();
+  const daysInMonth = new Date(view.year, view.month + 1, 0).getDate();
+
+  const prevMonth = () =>
+    setView(v => v.month === 0 ? { year: v.year - 1, month: 11 } : { ...v, month: v.month - 1 });
+  const nextMonth = () =>
+    setView(v => v.month === 11 ? { year: v.year + 1, month: 0 } : { ...v, month: v.month + 1 });
+
+  const selectDay = (day) => {
+    onChange(new Date(view.year, view.month, day));
+    onClose();
+  };
+
+  const isSelected = (day) =>
+    selectedDate &&
+    selectedDate.getFullYear() === view.year &&
+    selectedDate.getMonth()    === view.month &&
+    selectedDate.getDate()     === day;
+
+  const isToday = (day) =>
+    today.getFullYear() === view.year &&
+    today.getMonth()    === view.month &&
+    today.getDate()     === day;
+
+  const cells = [];
+  for (let i = 0; i < firstDay; i++) cells.push(null);
+  for (let d = 1; d <= daysInMonth; d++) cells.push(d);
+
+  return (
+    <div className="absolute right-0 top-full mt-2 z-50 w-72 bg-white border border-slate-200 rounded-xl shadow-2xl p-4 select-none">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-3">
+        <button
+          type="button"
+          onClick={prevMonth}
+          className="h-7 w-7 flex items-center justify-center rounded-md hover:bg-slate-100 text-slate-500 transition-colors"
+        >
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+        <span className="text-sm font-bold text-slate-800">
+          {MONTHS[view.month]} {view.year}
+        </span>
+        <button
+          type="button"
+          onClick={nextMonth}
+          className="h-7 w-7 flex items-center justify-center rounded-md hover:bg-slate-100 text-slate-500 transition-colors"
+        >
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
+      </div>
+
+      {/* Day labels */}
+      <div className="grid grid-cols-7 mb-1">
+        {DAYS.map(d => (
+          <span key={d} className="text-center text-[10px] font-semibold text-slate-400 py-1">{d}</span>
+        ))}
+      </div>
+
+      {/* Day cells */}
+      <div className="grid grid-cols-7 gap-y-0.5">
+        {cells.map((day, idx) =>
+          day === null ? (
+            <span key={`empty-${idx}`} />
+          ) : (
+            <button
+              key={day}
+              type="button"
+              onClick={() => selectDay(day)}
+              className={`
+                h-8 w-8 mx-auto flex items-center justify-center rounded-full text-xs font-medium transition-colors
+                ${isSelected(day)
+                  ? "bg-[#7667ff] text-white font-bold"
+                  : isToday(day)
+                  ? "border border-[#7667ff] text-[#7667ff] font-bold hover:bg-purple-50"
+                  : "text-slate-700 hover:bg-slate-100"
+                }
+              `}
+            >
+              {day}
+            </button>
+          )
+        )}
+      </div>
+
+      {/* Footer */}
+      <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between">
+        <button
+          type="button"
+          onClick={() => { onChange(new Date()); onClose(); }}
+          className="text-xs font-semibold text-[#7667ff] hover:underline"
+        >
+          Today
+        </button>
+        <button
+          type="button"
+          onClick={() => { onChange(null); onClose(); }}
+          className="text-xs text-slate-400 hover:text-slate-600"
+        >
+          Clear
+        </button>
+      </div>
+    </div>
+  );
 };
 
 const IconButton = ({ title, active, onClick, children }) => (
@@ -29,245 +136,157 @@ const IconButton = ({ title, active, onClick, children }) => (
     type="button"
     onClick={onClick}
     title={title}
-    className={`h-9 w-9 rounded-md flex items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-teal-100 ${
-      active ? "app-selected" : "text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+    className={`flex h-10 w-10 items-center justify-center rounded-md border text-slate-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-100 ${
+      active ? "border-blue-200 bg-blue-50 text-blue-700" : "border-slate-200 bg-white hover:bg-slate-50"
     }`}
   >
     {children}
   </button>
 );
 
-const Navbar = ({ onLogout }) => {
-  const navigate = useNavigate();
-  const { language, setLanguage, locale, t } = useI18n();
-  const [openMenu, setOpenMenu] = useState(null);
-  const [search, setSearch] = useState("");
-  const [org, setOrg] = useState(() => legacyOrgMap[localStorage.getItem("rico-org-module")] || localStorage.getItem("rico-org-module") || "organisationSetup");
-  const [dark, setDark] = useState(() => localStorage.getItem("rico-theme") === "dark");
-  const [calendarDate, setCalendarDate] = useState(() => new Date());
+const Navbar = ({ onLogout, currentUser }) => {
+  const navigate        = useNavigate();
+  const location        = useLocation();
+  const { locale, t }   = useI18n();
+  const [search, setSearch]             = useState("");
+  const [dark, setDark]                 = useState(() => localStorage.getItem("rico-theme") === "dark");
+  const [pickerOpen, setPickerOpen]     = useState(false);
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const pickerRef                       = useRef(null);
 
-  const today = useMemo(() => new Date().toLocaleDateString(locale, {
-    weekday: "long",
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  }), [locale]);
+  const meta = useMemo(() => {
+    if (location.pathname.startsWith("/part/")) {
+      return { title: "Part Profile", subtitle: "Configuration, operations and document control" };
+    }
+    return pageMeta[location.pathname] || pageMeta["/parts"];
+  }, [location.pathname]);
 
-  const monthLabel = useMemo(() => calendarDate.toLocaleDateString(locale, {
-    month: "long",
-    year: "numeric",
-  }), [calendarDate, locale]);
-
-  const dayLabels = useMemo(() => {
-    const base = new Date(2026, 3, 5);
-    return Array.from({ length: 7 }, (_, index) =>
-      new Date(base.getFullYear(), base.getMonth(), base.getDate() + index).toLocaleDateString(locale, { weekday: "short" })
-    );
-  }, [locale]);
-
-  const calendarDays = useMemo(() => {
-    const year = calendarDate.getFullYear();
-    const month = calendarDate.getMonth();
-    const firstDay = new Date(year, month, 1);
-    const startOffset = firstDay.getDay();
-    const gridStart = new Date(year, month, 1 - startOffset);
-    const todayDate = new Date();
-
-    return Array.from({ length: 42 }, (_, index) => {
-      const date = new Date(gridStart);
-      date.setDate(gridStart.getDate() + index);
-      return {
-        key: `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`,
-        day: date.getDate(),
-        currentMonth: date.getMonth() === month,
-        isToday:
-          date.getFullYear() === todayDate.getFullYear() &&
-          date.getMonth() === todayDate.getMonth() &&
-          date.getDate() === todayDate.getDate(),
-      };
+  const displayDate = useMemo(() => {
+    const d = selectedDate || new Date();
+    return d.toLocaleDateString(locale, {
+      weekday: "short",
+      day:     "2-digit",
+      month:   "short",
+      year:    "numeric",
     });
-  }, [calendarDate]);
+  }, [selectedDate, locale]);
+
+  const user = currentUser || { name: "Admin", role: "Administrator" };
+  const initials = user.name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map(part => part[0]?.toUpperCase())
+    .join("") || "AD";
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", dark);
     localStorage.setItem("rico-theme", dark ? "dark" : "light");
   }, [dark]);
 
+  // Close picker on outside click
   useEffect(() => {
-    localStorage.setItem("rico-org-module", org);
-  }, [org]);
-
-  const toggleMenu = (menu) => {
-    setOpenMenu(openMenu === menu ? null : menu);
-  };
+    if (!pickerOpen) return;
+    const handler = (e) => {
+      if (pickerRef.current && !pickerRef.current.contains(e.target)) {
+        setPickerOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [pickerOpen]);
 
   const handleSearchSubmit = (event) => {
     event.preventDefault();
     const value = search.trim();
-    navigate(value ? `/?search=${encodeURIComponent(value)}` : "/");
-    setOpenMenu(null);
+    navigate(value ? `/parts?search=${encodeURIComponent(value)}` : "/parts");
   };
 
-  const currentOrgLabel = t(org) || t("organisationSetup");
-
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 h-14 bg-white border-b border-gray-200 flex items-center justify-between px-4 app-topbar">
-      <button onClick={() => navigate("/")} className="flex flex-col leading-none text-left focus:outline-none">
-        <BrandLogo compact className="scale-[0.72] origin-left" />
-      </button>
-
-      <div className="flex items-center gap-1.5">
-        <div className="relative">
-          <IconButton title={t("language")} active={openMenu === "language"} onClick={() => toggleMenu("language")}>
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
-            </svg>
-          </IconButton>
-          {openMenu === "language" && (
-            <div className="absolute right-0 mt-2 w-44 rounded-lg border border-gray-200 bg-white shadow-xl py-1 z-50 app-popover">
-              {languages.map(item => (
-                <button
-                  key={item.code}
-                  onClick={() => { setLanguage(item.code); setOpenMenu(null); }}
-                  className={`w-full flex items-center justify-between px-3 py-2 text-sm ${language === item.code ? "app-selected font-semibold" : "text-gray-700 hover:bg-gray-50"}`}
-                >
-                  <span>{item.label}</span>
-                  <span className="text-xs text-gray-400">{item.code}</span>
-                </button>
-              ))}
-            </div>
-          )}
+    <header className="fixed left-0 right-0 top-0 z-50 h-[72px] border-b border-slate-200 bg-white/95 px-4 shadow-sm backdrop-blur lg:left-64">
+      <div className="flex h-full items-center justify-between gap-4">
+        {/* Left: page title */}
+        <div className="min-w-0">
+          <div className="mt-0.5 flex min-w-0 items-center gap-3">
+            <h1 className="truncate text-xl font-bold text-slate-900">{meta.title}</h1>
+            <span className="hidden h-5 w-px bg-slate-200 sm:block" />
+            <p className="hidden truncate text-sm text-slate-500 md:block">{meta.subtitle}</p>
+          </div>
         </div>
 
-        <div className="relative">
-          <IconButton title={t("calendar")} active={openMenu === "calendar"} onClick={() => toggleMenu("calendar")}>
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        {/* Right: actions */}
+        <div className="flex shrink-0 items-center gap-2">
+          {/* Search */}
+          <form onSubmit={handleSearchSubmit} className="relative hidden md:block">
+            <svg className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.7} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
-          </IconButton>
-          {openMenu === "calendar" && (
-            <div className="absolute right-0 mt-2 w-72 rounded-lg border border-gray-200 bg-white shadow-xl p-3 z-50 app-popover">
-              <div className="flex items-center justify-between gap-2">
-                <button
-                  type="button"
-                  onClick={() => setCalendarDate(new Date(calendarDate.getFullYear(), calendarDate.getMonth() - 1, 1))}
-                  className="h-8 w-8 rounded-md text-gray-500 hover:bg-gray-100"
-                >
-                  <svg className="w-4 h-4 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                  </svg>
-                </button>
-                <p className="text-sm font-semibold text-gray-800">{monthLabel}</p>
-                <button
-                  type="button"
-                  onClick={() => setCalendarDate(new Date(calendarDate.getFullYear(), calendarDate.getMonth() + 1, 1))}
-                  className="h-8 w-8 rounded-md text-gray-500 hover:bg-gray-100"
-                >
-                  <svg className="w-4 h-4 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </button>
-              </div>
-              <div className="mt-3 grid grid-cols-7 gap-1 text-center">
-                {dayLabels.map((day) => (
-                  <span key={day} className="text-[11px] font-semibold uppercase text-gray-400 py-1">{day}</span>
-                ))}
-                {calendarDays.map((day) => (
-                  <div
-                    key={day.key}
-                    className={`h-8 w-8 mx-auto rounded-md flex items-center justify-center text-sm ${
-                      day.isToday
-                        ? "bg-teal-700 text-white font-semibold"
-                        : day.currentMonth
-                          ? "text-gray-700"
-                          : "text-gray-300"
-                    }`}
-                  >
-                    {day.day}
-                  </div>
-                ))}
-              </div>
-              <p className="mt-3 text-xs font-semibold text-gray-400 uppercase tracking-wide">{t("today")}</p>
-              <p className="mt-1 text-sm font-semibold text-gray-800">{today}</p>
-              <p className="mt-2 text-xs text-gray-500">{t("datesUseSystemCalendar")}</p>
-            </div>
-          )}
-        </div>
-
-        <IconButton title={dark ? t("lightMode") : t("darkMode")} active={dark} onClick={() => setDark(!dark)}>
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-          </svg>
-        </IconButton>
-
-        <form onSubmit={handleSearchSubmit} className="relative flex items-center gap-1">
-          {openMenu === "search" && (
             <input
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-44 sm:w-56 border border-gray-200 rounded-md py-2 pl-3 pr-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-100 app-input"
+              onChange={e => setSearch(e.target.value)}
+              className="h-10 w-64 rounded-md border border-slate-200 bg-slate-50 pl-9 pr-3 text-sm text-slate-800 outline-none transition focus:border-blue-400 focus:bg-white"
               placeholder={t("searchPartPlaceholder")}
-              autoFocus
             />
-          )}
-          <button
-            type={openMenu === "search" ? "submit" : "button"}
-            onClick={() => openMenu !== "search" && toggleMenu("search")}
-            title={t("search")}
-            className={`h-9 w-9 rounded-md flex items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-teal-100 ${
-              openMenu === "search" ? "app-selected" : "text-gray-500 hover:bg-gray-100 hover:text-gray-700"
-            }`}
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-          </button>
-        </form>
+          </form>
 
-        <div className="relative hidden sm:block">
+          {/* Date Picker */}
+          <div className="relative hidden sm:block" ref={pickerRef}>
+            <button
+              type="button"
+              onClick={() => setPickerOpen(prev => !prev)}
+              title="Pick a date"
+              className={`flex items-center gap-2 rounded-md border px-3 py-2 text-sm font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-purple-100 ${
+                pickerOpen
+                  ? "border-[#7667ff] bg-purple-50 text-[#7667ff]"
+                  : "border-slate-200 bg-slate-50 text-slate-700 hover:bg-white hover:border-slate-300"
+              }`}
+            >
+              <svg className="h-4 w-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.7} d="M8 7V3m8 4V3M5 11h14M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              <span>{displayDate}</span>
+            </button>
+
+            {pickerOpen && (
+              <DatePicker
+                selectedDate={selectedDate}
+                onChange={setSelectedDate}
+                onClose={() => setPickerOpen(false)}
+              />
+            )}
+          </div>
+
+          {/* Dark mode toggle */}
+          <IconButton title={dark ? t("lightMode") : t("darkMode")} active={dark} onClick={() => setDark(!dark)}>
+            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.6} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+            </svg>
+          </IconButton>
+
+          {/* User info */}
+          <div className="hidden items-center gap-3 border-l border-slate-200 pl-3 md:flex">
+            <div className="text-right leading-tight">
+              <p className="text-sm font-bold capitalize text-slate-800">{user.name}</p>
+              <p className="text-xs text-slate-500">{user.role}</p>
+            </div>
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#1f6feb] text-sm font-bold text-white">
+              {initials}
+            </div>
+          </div>
+
+          {/* Logout */}
           <button
             type="button"
-            onClick={() => toggleMenu("org")}
-            className={`h-9 flex items-center gap-1.5 px-3 text-sm rounded-md border transition-colors focus:outline-none focus:ring-2 focus:ring-teal-100 ${
-              openMenu === "org" ? "border-teal-200 app-selected" : "border-gray-200 text-gray-600 hover:bg-gray-100"
-            }`}
+            onClick={onLogout}
+            title={t("logout")}
+            className="flex h-10 w-10 items-center justify-center rounded-md border border-slate-200 bg-white text-slate-500 transition-colors hover:bg-red-50 hover:text-red-600 focus:outline-none focus:ring-2 focus:ring-red-100"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-            </svg>
-            <span className="font-medium whitespace-nowrap">{currentOrgLabel}</span>
-            <svg className={`w-3.5 h-3.5 text-gray-400 transition-transform ${openMenu === "org" ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.7} d="M17 16l4-4m0 0l-4-4m4 4H9m4 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
             </svg>
           </button>
-          {openMenu === "org" && (
-            <div className="absolute right-0 mt-2 w-56 rounded-lg border border-gray-200 bg-white shadow-xl py-1 z-50 app-popover">
-              {orgItems.map(item => (
-                <button
-                  key={item.key}
-                  onClick={() => { setOrg(item.key); setOpenMenu(null); }}
-                  className={`w-full flex items-center justify-between px-3 py-2 text-sm ${org === item.key ? "app-selected font-semibold" : "text-gray-700 hover:bg-gray-50"}`}
-                >
-                  <span>{t(item.key) || item.fallback}</span>
-                  {org === item.key && (
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-                  )}
-                </button>
-              ))}
-            </div>
-          )}
         </div>
-
-        <IconButton title={t("logout")} onClick={onLogout}>
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-          </svg>
-        </IconButton>
       </div>
-
-      {openMenu && openMenu !== "search" && (
-        <div className="fixed inset-0 z-40" onClick={() => setOpenMenu(null)} />
-      )}
     </header>
   );
 };
