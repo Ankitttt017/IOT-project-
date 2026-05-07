@@ -3,6 +3,7 @@ import Navbar from "../../components/common/Navbar";
 import Sidebar from "../../components/common/Sidebar";
 import { getMachines } from "../../services/api";
 import MachineCard from "./components/MachineCard";
+import { useSidebar } from "../../context/SidebarContext";
 
 // ── Static filter data ────────────────────────────────────────────────────────
 const PLANTS = [
@@ -156,6 +157,7 @@ const Select = ({ label, value, onChange, options }) => (
 
 // ── Main component ────────────────────────────────────────────────────────────
 const MachineDashboard = ({ onLogout, currentUser }) => {
+  const { collapsed } = useSidebar();
   const [machines, setMachines]         = useState([]);
   const [loading, setLoading]           = useState(true);
   const [error, setError]               = useState("");
@@ -233,7 +235,9 @@ const MachineDashboard = ({ onLogout, currentUser }) => {
       <Navbar onLogout={onLogout} currentUser={currentUser} />
       <Sidebar />
 
-      <main className="pt-[94px] lg:pl-72">
+      <main className={`pt-[94px] transition-all duration-300 ease-in-out ${
+        collapsed ? "lg:pl-[72px]" : "lg:pl-72"
+      }`}>
         <div className="p-4 sm:p-6">
 
           {/* Breadcrumb */}

@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import Navbar from "../../components/common/Navbar";
 import Sidebar from "../../components/common/Sidebar";
 import { getMachineStatusHistory, getMachines } from "../../services/api";
+import { useSidebar } from "../../context/SidebarContext";
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 const safe = (v, fb = "—") => String(v || "").trim() || fb;
@@ -1516,6 +1517,7 @@ const InfoRow = ({ label, value, highlight, editable = true, onEdit }) => (
 
 // ── Main Page ─────────────────────────────────────────────────────────────────
 const MachineProfilePage = ({ onLogout, currentUser }) => {
+  const { collapsed } = useSidebar();
   const { id } = useParams();
   const navigate = useNavigate();
   const [machine, setMachine] = useState(null);
@@ -1596,7 +1598,9 @@ const MachineProfilePage = ({ onLogout, currentUser }) => {
         />
       )}
 
-      <main className="pt-[94px] lg:pl-72">
+      <main className={`pt-[94px] transition-all duration-300 ease-in-out ${
+        collapsed ? "lg:pl-[72px]" : "lg:pl-72"
+      }`}>
         <div className="p-4 sm:p-6">
 
           {/* Breadcrumb */}

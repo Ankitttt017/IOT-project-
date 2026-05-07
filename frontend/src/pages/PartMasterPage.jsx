@@ -4,6 +4,7 @@ import Navbar from "../components/common/Navbar";
 import Sidebar from "../components/common/Sidebar";
 import { getPlants, getParts } from "../services/api";
 import { useI18n } from "../context/I18nContext";
+import { useSidebar } from "../context/SidebarContext";
 
 const DEFAULT_PLANTS = [
   { id: "fallback-bawal", name: "Bawal Plant", code: "1008", location: "Bawal, Haryana" },
@@ -132,6 +133,7 @@ const PartCard = ({ part, t }) => {
 
 const PartMasterPage = ({ onLogout, currentUser }) => {
   const { t } = useI18n();
+  const { collapsed } = useSidebar();
   const [searchParams, setSearchParams] = useSearchParams();
   const GROUP_FILTERS = [
     { label: t("all"), value: "" },
@@ -222,8 +224,9 @@ const PartMasterPage = ({ onLogout, currentUser }) => {
       <Navbar onLogout={onLogout} currentUser={currentUser} />
       <Sidebar />
 
-      {/* Full-width main — no max-w cap */}
-      <main className="pt-[94px] lg:pl-72">
+      <main className={`pt-[94px] transition-all duration-300 ease-in-out ${
+        collapsed ? "lg:pl-[72px]" : "lg:pl-72"
+      }`}>
         <div className="w-full p-4 sm:p-6">
 
           {/* Breadcrumb */}
@@ -296,8 +299,8 @@ const PartMasterPage = ({ onLogout, currentUser }) => {
                               type="button"
                               onClick={() => handleSelectPlant(plant)}
                               className={`w-full px-4 py-2.5 text-left text-sm transition-colors ${plant.code === selectedPlant?.code
-                                  ? "app-selected font-semibold"
-                                  : "text-slate-700 hover:bg-slate-50"
+                                ? "app-selected font-semibold"
+                                : "text-slate-700 hover:bg-slate-50"
                                 }`}
                             >
                               <span className="block truncate font-semibold">{plant.name}</span>
@@ -333,7 +336,7 @@ const PartMasterPage = ({ onLogout, currentUser }) => {
                 </div>
               </div>
 
-              {/* Part type filter */}
+              {/*   type filter */}
               <div>
                 <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500">
                   {t("partType")}

@@ -7,6 +7,7 @@ import ConfigurationTab from "../components/partprofile/ConfigurationTab";
 import { ProductionOrdersTab, ProductionLogTab } from "../components/partprofile/LockedTabs";
 import { getPartById, getOperations, getConfig, getSheets, updatePart } from "../services/api";
 import { useI18n } from "../context/I18nContext";
+import { useSidebar } from "../context/SidebarContext";
 
 const RicoIcon = () => (
   <svg viewBox="0 0 80 80" className="w-full h-full" fill="none">
@@ -126,6 +127,7 @@ const LockedIcon = () => (
 
 const PartProfilePage = ({ onLogout, currentUser }) => {
   const { t } = useI18n();
+  const { collapsed } = useSidebar();
   const { id } = useParams();
   const navigate = useNavigate();
   const tabs = [
@@ -200,7 +202,9 @@ const PartProfilePage = ({ onLogout, currentUser }) => {
       <Navbar onLogout={onLogout} currentUser={currentUser} />
       <Sidebar />
 
-      <main className="pt-[94px] lg:pl-72">
+      <main className={`pt-[94px] transition-all duration-300 ease-in-out ${
+        collapsed ? "lg:pl-[72px]" : "lg:pl-72"
+      }`}>
         <div className="p-4 sm:p-6 max-w-[1540px] mx-auto">
           <div className="flex items-center gap-1.5 mb-4 text-sm text-gray-500">
             <button onClick={() => navigate("/parts")} className="app-brand-text font-semibold hover:underline">{t("partMaster")}</button>

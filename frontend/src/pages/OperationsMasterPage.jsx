@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import Navbar from "../components/common/Navbar";
 import Sidebar from "../components/common/Sidebar";
 import { getOperationMaster, getParts, getPlants } from "../services/api";
+import { useSidebar } from "../context/SidebarContext";
 
 const PLANT_NAMES = {
   "1002": "Gurugram Plant",
@@ -123,6 +124,7 @@ const formatDate = (value) => {
 };
 
 const OperationsMasterPage = ({ onLogout, currentUser }) => {
+  const { collapsed } = useSidebar();
   const [plants, setPlants] = useState([]);
   const [selectedPlant, setSelectedPlant] = useState("");
   const [parts, setParts] = useState([]);
@@ -208,7 +210,9 @@ const OperationsMasterPage = ({ onLogout, currentUser }) => {
       <Navbar onLogout={onLogout} currentUser={currentUser} />
       <Sidebar />
 
-      <main className="pt-[94px] lg:pl-72">
+      <main className={`pt-[94px] transition-all duration-300 ease-in-out ${
+        collapsed ? "lg:pl-[72px]" : "lg:pl-72"
+      }`}>
         <div className="w-full p-4 sm:p-6">
           <div className="mb-5 flex flex-wrap items-center gap-2">
             <h1 className="text-xl font-extrabold text-slate-950">Organisation Master</h1>
